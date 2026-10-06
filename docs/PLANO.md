@@ -103,50 +103,50 @@ O dungeon passa a ser gerado por seed e as cartas entram como dados em JSON. Ao 
 
 **Geração do mapa (core/Map)**
 
-- [ ] Definir tipos de célula: chão, parede, baú, saída, spawn de monstro
-- [ ] Gerar 5 a 8 salas retangulares em grid de 12×12 a 16×16 a partir da seed
-- [ ] Ligar salas por corredores em L
-- [ ] Validar conectividade por BFS; regenerar se falhar
-- [ ] Colocar 4 spawns de caçador nos cantos, em salas distintas
-- [ ] Colocar a saída numa sala que não é spawn
-- [ ] Distribuir 8 a 14 baús
-- [ ] Colocar o tesouro-alvo no baú mais distante (em passos BFS) da média dos spawns, com variação de ±2
-- [ ] Marcar 1 spawn de monstro por sala sem caçador (os monstros em si entram na fatia 3)
-- [ ] Serializar o layout gerado para o cliente receber seed + layout
+- [x] Definir tipos de célula: chão, parede, baú, saída, spawn de monstro
+- [x] Gerar 5 a 8 salas retangulares em grid de 12×12 a 16×16 a partir da seed
+- [x] Ligar salas por corredores em L
+- [x] Validar conectividade por BFS; regenerar se falhar
+- [x] Colocar 4 spawns de caçador nos cantos, em salas distintas
+- [x] Colocar a saída numa sala que não é spawn
+- [x] Distribuir 8 a 14 baús
+- [x] Colocar o tesouro-alvo no baú mais distante (em passos BFS) da média dos spawns, com variação de ±2
+- [x] Marcar 1 spawn de monstro por sala sem caçador (os monstros em si entram na fatia 3)
+- [x] Serializar o layout gerado para o cliente receber seed + layout
 
 **Visão**
 
-- [ ] Calcular células visíveis: a sala atual mais 2 passos
-- [ ] Manter névoa para o resto; baús abertos ficam marcados para todos
+- [x] Calcular células visíveis: a sala atual mais 2 passos
+- [x] Manter névoa para o resto; baús abertos ficam marcados para todos
 
 **Cartas como dados (core/Cards + data/)**
 
-- [ ] Definir o modelo `Card` conforme o esquema do GDD: id, name, type, rarity, cost, sell, mods, effect
-- [ ] Carregar `data/cards.json` no core sem dependência de Unity
-- [ ] Escrever as cartas iniciais em JSON: 10 armas, 8 armaduras, 8 acessórios, 12 consumíveis, 6 armadilhas, 8 ataques especiais, 3 tesouros
-- [ ] Criar o registro de efeitos (`effect` id → função pura) com os efeitos de equipamento (mods em ATQ/DEF/VEL/SOR)
-- [ ] Definir `data/loot_tables.json` com pesos por raridade
-- [ ] Sortear loot ponderando raridade pela SOR de quem abre
-- [ ] Gerar `docs/cards.md` a partir do JSON por script
+- [x] Definir o modelo `Card` conforme o esquema do GDD: id, name, type, rarity, cost, sell, mods, effect
+- [x] Carregar `data/cards.json` no core sem dependência de Unity
+- [x] Escrever as cartas iniciais em JSON: 10 armas, 8 armaduras, 8 acessórios, 3 tesouros (consumíveis, armadilhas e ataques especiais movidos para a fatia 3, junto dos efeitos)
+- [x] Criar o registro de efeitos (`effect` id → função pura) com os efeitos de equipamento (mods em ATQ/DEF/VEL/SOR)
+- [x] Definir `data/loot_tables.json` com pesos por raridade
+- [x] Sortear loot ponderando raridade pela SOR de quem abre
+- [x] Gerar `docs/cards.md` a partir do JSON por script
 
 **Mão e baús (core/Rules)**
 
-- [ ] Ação `OpenChest`: 2 PA, baú adjacente, carta vai para a mão
-- [ ] Mão máxima de 10: ao pegar a 11ª, exigir descarte antes (ação `Discard`)
-- [ ] Ação `Equip`: 1 PA, slots arma/armadura/acessório, substitui a carta do slot
-- [ ] Cartas na mão ocultas aos outros; equipadas visíveis
-- [ ] Estado Marcado: quem carrega o tesouro-alvo fica visível a todos
-- [ ] Fim de partida: sair com o tesouro-alvo vence a missão
+- [x] Ação `OpenChest`: 2 PA, baú adjacente, carta vai para a mão
+- [x] Mão máxima de 10: ao pegar a 11ª, exigir descarte antes (ação `Discard`)
+- [x] Ação `Equip`: 1 PA, slots arma/armadura/acessório, substitui a carta do slot
+- [x] Cartas na mão ocultas aos outros; equipadas visíveis
+- [x] Estado Marcado: quem carrega o tesouro-alvo fica visível a todos
+- [x] Fim de partida: sair com o tesouro-alvo vence a missão
 
 **Testes**
 
-- [ ] Mesma seed gera o mesmo mapa
-- [ ] 1.000 mapas gerados são todos conexos
-- [ ] Tesouro-alvo nunca cai numa sala de spawn
-- [ ] Abrir baú com 1 PA é rejeitado
-- [ ] 11ª carta exige descarte
-- [ ] Equipar Machado aplica +6 ATQ e -1 VEL
-- [ ] Todas as cartas do JSON têm `effect` nulo ou registrado
+- [x] Mesma seed gera o mesmo mapa
+- [x] 1.000 mapas gerados são todos conexos
+- [x] Tesouro-alvo nunca cai numa sala de spawn
+- [x] Abrir baú com 1 PA é rejeitado
+- [x] 11ª carta exige descarte
+- [x] Equipar Machado aplica +6 ATQ e -1 VEL
+- [x] Todas as cartas do JSON têm `effect` nulo ou registrado
 
 **Gate da fatia 2**
 
@@ -195,6 +195,7 @@ A fórmula de dano, monstros, PvP com roubo de carta e os estados. Ao fim, todas
 - [ ] Efeitos de consumível: Poção (+8 PV), Antídoto, Bomba (3 de dano em área 3×3)
 - [ ] Armadilhas: Fosso (4 de dano), Rede (perde o próximo turno), Alarme (atrai monstros); disparam ao pisar
 - [ ] Ataques especiais no lugar do ataque normal, descartam: Golpe Duplo, Investida (2 células), Rasteira (derruba 2 cartas da mão do alvo)
+- [ ] Escrever em `cards.json`: 12 consumíveis, 6 armadilhas, 8 ataques especiais (movido da fatia 2)
 - [ ] Cada efeito é uma função pura em `core/Cards/Effects` com teste próprio
 
 **Estados**

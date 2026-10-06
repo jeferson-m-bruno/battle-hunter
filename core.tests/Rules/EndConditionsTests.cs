@@ -73,6 +73,38 @@ public class EndConditionsTests
     }
 
     [Fact]
+    public void Given_TreasureInHand_When_Exits_Then_WinsMissionAndGameEnds()
+    {
+        var random = new FixedRandom(3);
+        var state = NewGameWithChests(MapBuilder.Open5x5(), Array.Empty<Chest>(), "treasure_dragon_eye",
+                HunterAt(1, 4, 4, hand: new[] { "treasure_dragon_eye" }), HunterAt(2, 0, 0))
+            .StartAndRoll(random);
+
+        var result = state.Apply(new Exit(1), random);
+
+        Assert.Equal(GamePhase.Finished, result.State.Phase);
+        Assert.Equal(GameEndReason.TreasureExtracted, result.State.EndReason);
+        Assert.Equal(1, result.State.WinnerId);
+        Assert.Equal(HunterStatus.Exited, result.State.Hunter(1).Status);
+        Assert.Contains(result.Events, e => e is GameEnded g && g.Reason == GameEndReason.TreasureExtracted && g.WinnerId == 1);
+    }
+
+    [Fact]
+    public void Given_TreasureWithOtherHunter_When_Exits_Then_GameContinues()
+    {
+        var random = new FixedRandom(3);
+        var state = NewGameWithChests(MapBuilder.Open5x5(), Array.Empty<Chest>(), "treasure_dragon_eye",
+                HunterAt(1, 4, 4), HunterAt(2, 0, 0, hand: new[] { "treasure_dragon_eye" }))
+            .StartAndRoll(random);
+
+        var result = state.Apply(new Exit(1), random);
+
+        Assert.Equal(GamePhase.AwaitingRoll, result.State.Phase);
+        Assert.Null(result.State.WinnerId);
+        Assert.Equal(2, result.State.CurrentHunterId);
+    }
+
+    [Fact]
     public void Given_DefaultConfig_When_Created_Then_MaxRoundsIsThirty()
     {
         Assert.Equal(30, new GameConfig().MaxRounds);

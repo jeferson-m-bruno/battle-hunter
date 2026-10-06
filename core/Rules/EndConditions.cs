@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using BattleHunter.Core.State;
-using BattleHunter.Core.State.Actions;
 using BattleHunter.Core.State.Events;
 
 namespace BattleHunter.Core.Rules;
@@ -29,6 +28,11 @@ internal static class EndConditions
             with { ActionPoints = state.ActionPoints - ExitCost };
 
         var events = new List<GameEvent> { new HunterExited(hunter.Id) };
+
+        // Sair com o tesouro-alvo vence a missão e encerra a partida para todos.
+        if (state.IsMarked(hunter.Id))
+            return new ReducerResult(TurnRules.Finish(next, GameEndReason.TreasureExtracted, hunter.Id, events), events);
+
         next = TurnRules.EndTurn(next, events);
         return new ReducerResult(next, events);
     }

@@ -1,1 +1,34 @@
-[]
+[
+  { "id": "dagger_rusty",  "name": "Adaga Enferrujada", "type": "weapon", "rarity": "common",   "cost": 1, "sell": 10,  "mods": { "atk": 1 }, "effect": null },
+  { "id": "dagger",        "name": "Adaga",             "type": "weapon", "rarity": "common",   "cost": 1, "sell": 15,  "mods": { "atk": 2 }, "effect": null },
+  { "id": "sword_short",   "name": "Espada Curta",      "type": "weapon", "rarity": "common",   "cost": 1, "sell": 20,  "mods": { "atk": 3 }, "effect": null },
+  { "id": "sword_iron",    "name": "Espada de Ferro",   "type": "weapon", "rarity": "common",   "cost": 1, "sell": 20,  "mods": { "atk": 4 }, "effect": null },
+  { "id": "mace",          "name": "Maça",              "type": "weapon", "rarity": "uncommon", "cost": 1, "sell": 40,  "mods": { "atk": 5 }, "effect": null },
+  { "id": "axe",           "name": "Machado",           "type": "weapon", "rarity": "uncommon", "cost": 1, "sell": 50,  "mods": { "atk": 6, "spd": -1 }, "effect": null },
+  { "id": "spear",         "name": "Lança",             "type": "weapon", "rarity": "uncommon", "cost": 1, "sell": 45,  "mods": { "atk": 4, "spd": 1 }, "effect": null },
+  { "id": "blade_lucky",   "name": "Lâmina da Sorte",   "type": "weapon", "rarity": "uncommon", "cost": 1, "sell": 45,  "mods": { "atk": 3, "luck": 2 }, "effect": null },
+  { "id": "greatsword",    "name": "Espadão",           "type": "weapon", "rarity": "rare",     "cost": 1, "sell": 90,  "mods": { "atk": 8, "spd": -2 }, "effect": null },
+  { "id": "fang_dragon",   "name": "Presa de Dragão",   "type": "weapon", "rarity": "rare",     "cost": 1, "sell": 100, "mods": { "atk": 7, "luck": 1 }, "effect": null },
+
+  { "id": "tunic",         "name": "Túnica",            "type": "armor", "rarity": "common",   "cost": 1, "sell": 10,  "mods": { "spd": 1 }, "effect": null },
+  { "id": "leather",       "name": "Couro",             "type": "armor", "rarity": "common",   "cost": 1, "sell": 15,  "mods": { "def": 1 }, "effect": null },
+  { "id": "leather_studded", "name": "Couro Cravejado", "type": "armor", "rarity": "common",   "cost": 1, "sell": 25,  "mods": { "def": 2 }, "effect": null },
+  { "id": "chainmail",     "name": "Cota de Malha",     "type": "armor", "rarity": "uncommon", "cost": 1, "sell": 40,  "mods": { "def": 3 }, "effect": null },
+  { "id": "scale",         "name": "Escamas",           "type": "armor", "rarity": "uncommon", "cost": 1, "sell": 50,  "mods": { "def": 4, "spd": -1 }, "effect": null },
+  { "id": "vest_lucky",    "name": "Colete da Sorte",   "type": "armor", "rarity": "uncommon", "cost": 1, "sell": 45,  "mods": { "def": 2, "luck": 1 }, "effect": null },
+  { "id": "plate",         "name": "Placas",            "type": "armor", "rarity": "rare",     "cost": 1, "sell": 80,  "mods": { "def": 5, "spd": -1 }, "effect": null },
+  { "id": "scale_dragon",  "name": "Escama de Dragão",  "type": "armor", "rarity": "rare",     "cost": 1, "sell": 110, "mods": { "def": 6, "spd": -1 }, "effect": null },
+
+  { "id": "boots",         "name": "Botas",             "type": "accessory", "rarity": "common",   "cost": 1, "sell": 20,  "mods": { "spd": 1 }, "effect": null },
+  { "id": "amulet_life",   "name": "Amuleto de Vida",   "type": "accessory", "rarity": "common",   "cost": 1, "sell": 25,  "mods": { "hp": 5 }, "effect": null },
+  { "id": "belt_strength", "name": "Cinto de Força",    "type": "accessory", "rarity": "common",   "cost": 1, "sell": 20,  "mods": { "atk": 1 }, "effect": null },
+  { "id": "bracers",       "name": "Braçadeiras",       "type": "accessory", "rarity": "common",   "cost": 1, "sell": 20,  "mods": { "def": 1 }, "effect": null },
+  { "id": "ring_luck",     "name": "Anel da Sorte",     "type": "accessory", "rarity": "uncommon", "cost": 1, "sell": 40,  "mods": { "luck": 2 }, "effect": null },
+  { "id": "charm_fox",     "name": "Amuleto da Raposa", "type": "accessory", "rarity": "uncommon", "cost": 1, "sell": 45,  "mods": { "spd": 1, "luck": 1 }, "effect": null },
+  { "id": "cloak_shadow",  "name": "Manto das Sombras", "type": "accessory", "rarity": "rare",     "cost": 1, "sell": 80,  "mods": { "spd": 2 }, "effect": null },
+  { "id": "crown_hunter",  "name": "Coroa do Caçador",  "type": "accessory", "rarity": "rare",     "cost": 1, "sell": 100, "mods": { "atk": 1, "def": 1, "luck": 1 }, "effect": null },
+
+  { "id": "treasure_kobold_fang", "name": "Dente de Kobold", "type": "treasure", "rarity": "rare", "cost": 0, "sell": 100, "mods": null, "effect": null },
+  { "id": "treasure_dragon_eye",  "name": "Olho de Dragão",  "type": "treasure", "rarity": "rare", "cost": 0, "sell": 250, "mods": null, "effect": null },
+  { "id": "treasure_lost_crown",  "name": "Coroa Perdida",   "type": "treasure", "rarity": "rare", "cost": 0, "sell": 500, "mods": null, "effect": null }
+]

@@ -135,6 +135,17 @@ Quando um caçador recebe dano de outro caçador e falha num teste de SOR (1d6 +
 
 Efeitos ativos usam um id de efeito ("effect": "double_strike") resolvido num registro de efeitos no core; cada efeito é uma função pura com teste.
 
+**Esclarecimentos de implementação (fatia 2)**
+
+- Salas de canto ancoradas nos 4 cantos do grid (sem borda de parede); lado máximo 3 no 12×12, 4 no 14×14, 5 no 16×16. Salas extras em qualquer lugar, com 1 célula de folga entre salas.
+- Células de baú não são pisáveis: abre-se de uma célula adjacente.
+- "Mais distante da média dos spawns" = maior média das distâncias BFS a partir dos 4 spawns; candidatos a até 2 passos do máximo, fora das salas de spawn.
+- Visão "2 passos" = distância de Manhattan ≤ 2, mais a sala atual inteira.
+- Loot do baú: peso por raridade em `loot_tables.json` — comum 60, incomum 30 + 2×SOR, rara 10 + 3×SOR (SOR efetiva, com equipamentos).
+- Descartar é gratuito (0 PA) e só é exigido ao tentar pegar a 11ª carta; o tesouro-alvo não pode ser descartado.
+- Equipar com o slot ocupado devolve a carta anterior à mão (a mão não cresce).
+- JSON é lido com Newtonsoft.Json no core: a Unity tem pacote oficial do mesmo assembly, então cliente e servidor leem `data/` do mesmo jeito.
+
 ## Combate
 
 Ataques são resolvidos no servidor com um dado por lado; o cliente só anima o resultado. Uma ação de ataque custa 2 PA e atinge um alvo adjacente ortogonal.

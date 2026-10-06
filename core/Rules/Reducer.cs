@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using BattleHunter.Core.Cards;
 using BattleHunter.Core.State;
 using BattleHunter.Core.State.Actions;
 using BattleHunter.Core.State.Events;
@@ -6,13 +6,13 @@ using BattleHunter.Core.State.Events;
 namespace BattleHunter.Core.Rules;
 
 /// <summary>
-/// Ponto único de entrada das regras: Apply(state, action, random) -> (state, events).
+/// Ponto único de entrada das regras: Apply(state, action, random, content) -> (state, events).
 /// Função pura: nunca muda o estado recebido. Ação inválida devolve o mesmo estado
 /// e um único evento ActionRejected.
 /// </summary>
 public static class Reducer
 {
-    public static ReducerResult Apply(GameState state, GameAction action, IRandom random)
+    public static ReducerResult Apply(GameState state, GameAction action, IRandom random, GameContent content)
     {
         if (state.Phase == GamePhase.Finished)
             return Reject(state, action, "A partida já terminou.");
@@ -20,10 +20,13 @@ public static class Reducer
         return action switch
         {
             StartGame start => TurnRules.Start(state, start, random),
-            RollDice roll => TurnRules.Roll(state, roll, random),
+            RollDice roll => TurnRules.Roll(state, roll, random, content),
             Pass pass => TurnRules.Pass(state, pass),
             MoveTo move => MovementRules.Move(state, move),
             Exit exit => EndConditions.Exit(state, exit),
+            OpenChest open => ChestRules.Open(state, open, random, content),
+            Discard discard => HandRules.Discard(state, discard),
+            Equip equip => HandRules.Equip(state, equip, content),
             _ => Reject(state, action, $"Ação desconhecida: {action.GetType().Name}."),
         };
     }

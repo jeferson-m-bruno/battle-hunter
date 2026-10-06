@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using BattleHunter.Core.Cards;
 using BattleHunter.Core.State;
 using BattleHunter.Core.State.Actions;
 using BattleHunter.Core.State.Events;
@@ -31,20 +32,21 @@ internal static class TurnRules
         });
     }
 
-    public static ReducerResult Roll(GameState state, RollDice action, IRandom random)
+    public static ReducerResult Roll(GameState state, RollDice action, IRandom random, GameContent content)
     {
         var error = Reducer.CheckTurn(state, action, GamePhase.AwaitingRoll);
         if (error != null)
             return Reducer.Reject(state, action, error);
 
         var hunter = state.Hunter(action.HunterId);
+        var speed = StatRules.Effective(hunter, content).Speed;
         var die = random.NextD6();
-        var points = die + hunter.Stats.Speed;
+        var points = die + speed;
 
         var next = state with { ActionPoints = points, Phase = GamePhase.Acting };
         return new ReducerResult(next, new GameEvent[]
         {
-            new DiceRolled(hunter.Id, die, hunter.Stats.Speed, points),
+            new DiceRolled(hunter.Id, die, speed, points),
         });
     }
 
@@ -69,7 +71,7 @@ internal static class TurnRules
 
         var endReason = EndConditions.CheckAfterTurn(state);
         if (endReason != null)
-            return Finish(state, endReason.Value, events);
+            return Finish(state, endReason.Value, winnerId: null, events);
 
         var index = state.TurnIndex;
         var round = state.Round;
@@ -84,7 +86,7 @@ internal static class TurnRules
                 index = 0;
                 round++;
                 if (round > state.Config.MaxRounds)
-                    return Finish(state, GameEndReason.RoundLimit, events);
+                    return Finish(state, GameEndReason.RoundLimit, winnerId: null, events);
             }
         } while (!state.Hunter(state.TurnOrder[index]).IsActive);
 
@@ -99,9 +101,9 @@ internal static class TurnRules
         return next;
     }
 
-    private static GameState Finish(GameState state, GameEndReason reason, List<GameEvent> events)
+    public static GameState Finish(GameState state, GameEndReason reason, int? winnerId, List<GameEvent> events)
     {
-        events.Add(new GameEnded(reason));
-        return state with { ActionPoints = 0, Phase = GamePhase.Finished, EndReason = reason };
+        events.Add(new GameEnded(reason, winnerId));
+        return state with { ActionPoints = 0, Phase = GamePhase.Finished, EndReason = reason, WinnerId = winnerId };
     }
 }

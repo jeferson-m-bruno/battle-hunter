@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "id": "chest",
+    "types": ["weapon", "armor", "accessory", "consumable", "trap", "special_attack"],
+    "rarities": [
+      { "rarity": "common",   "weight": 60, "perLuck": 0 },
+      { "rarity": "uncommon", "weight": 30, "perLuck": 2 },
+      { "rarity": "rare",     "weight": 10, "perLuck": 3 }
+    ]
+  }
+]
