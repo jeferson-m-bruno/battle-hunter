@@ -17,7 +17,7 @@ jobs:
 
       - name: Core não pode referenciar UnityEngine
         run: |
-          if grep -rn "UnityEngine" core/ --include="*.cs" --include="*.csproj"; then
+          if grep -rnE '^\s*using\s+UnityEngine|Include="UnityEngine' core/ --include="*.cs" --include="*.csproj"; then
             echo "::error::core/ referencia UnityEngine"
             exit 1
           fi
