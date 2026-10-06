@@ -41,6 +41,12 @@ internal static class MonsterRules
         if (monster.SkipsNextAction)
             return state.WithMonster(monster with { SkipsNextAction = false });
 
+        monster = monster with { ActionsTaken = monster.ActionsTaken + 1 };
+        state = state.WithMonster(monster);
+
+        if (content.Monsters.Get(monster.TypeId).Behavior == MonsterBehavior.Boss && monster.ActionsTaken % BossRules.BreathEvery == 0)
+            return BossRules.Breath(state, monsterId, random, content, events);
+
         var target = NearestVisibleHunter(state, monster);
         if (target != null && monster.Position.IsOrthogonallyAdjacentTo(target.Position))
             return CombatRules.ResolveAttack(state, Combatant.MonsterRef(monsterId), Combatant.HunterRef(target.Id), random, content, events);
@@ -109,12 +115,13 @@ internal static class MonsterRules
         state = state.WithHunter(killer with { Xp = killer.Xp + type.Xp });
         events.Add(new MonsterDefeated(monsterId, type.Id, killer.Id, type.Xp));
 
+        // Chefe: carta rara garantida; os demais só com 1d6 ≤ SOR.
         var luck = StatRules.Effective(killer, content).Luck;
-        if (random.NextD6() > luck)
+        if (type.Behavior != MonsterBehavior.Boss && random.NextD6() > luck)
             return state;
 
         var card = LootRoller.Roll(content.LootTable(type.Loot), content.Cards, luck, random);
-        return ChestRules.GiveCard(state, killer.Id, card.Id, events);
+        return ChestRules.GiveCard(state, killer.Id, card.Id, random, content, events);
     }
 
     /// <summary>Spawn inicial: um monstro sorteado em cada spawn (uma por sala sem caçador).</summary>

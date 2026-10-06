@@ -31,6 +31,6 @@ internal static class StealRules
 
         state = state.WithHunter(victim.WithCardRemoved(cardId));
         events.Add(new CardStolen(thiefId, victimId, cardId));
-        return ChestRules.GiveCard(state, thiefId, cardId, events);
+        return ChestRules.GiveCard(state, thiefId, cardId, random, content, events);
     }
 }

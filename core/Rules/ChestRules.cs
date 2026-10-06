@@ -51,7 +51,7 @@ internal static class ChestRules
                 ? content.Cards.Get(state.TargetTreasureCardId!)
                 : LootRoller.Roll(content.LootTable(GameContent.ChestLootTableId), content.Cards, StatRules.Effective(hunter, content).Luck, random);
 
-            next = GiveCard(next, hunter.Id, card.Id, events);
+            next = GiveCard(next, hunter.Id, card.Id, random, content, events);
         }
 
         if (next.Phase == GamePhase.Finished)
@@ -63,8 +63,8 @@ internal static class ChestRules
         return new ReducerResult(next, events);
     }
 
-    /// <summary>Entrega uma carta: na mão se há espaço, senão no chão da célula do caçador.</summary>
-    public static GameState GiveCard(GameState state, int hunterId, string cardId, List<GameEvent> events)
+    /// <summary>Entrega uma carta: na mão se há espaço, senão no chão da célula do caçador. O tesouro-alvo marca o caçador e chama o chefe.</summary>
+    public static GameState GiveCard(GameState state, int hunterId, string cardId, IRandom random, GameContent content, List<GameEvent> events)
     {
         var hunter = state.Hunter(hunterId);
         events.Add(new CardDrawn(hunterId, cardId));
@@ -74,7 +74,10 @@ internal static class ChestRules
 
         state = state.WithHunter(hunter.WithCardAdded(cardId));
         if (cardId == state.TargetTreasureCardId)
+        {
             events.Add(new HunterMarked(hunterId));
+            state = BossRules.SpawnOnTreasure(state, random, content, events);
+        }
 
         return state;
     }

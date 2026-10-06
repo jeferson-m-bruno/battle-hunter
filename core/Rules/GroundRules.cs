@@ -35,7 +35,7 @@ internal static class GroundRules
 
         var next = state with { GroundCards = remaining, ActionPoints = pointsLeft };
         var events = new List<GameEvent> { new CardPickedUp(hunter.Id, ground.CardId, pointsLeft) };
-        next = ChestRules.GiveCard(next, hunter.Id, ground.CardId, events);
+        next = ChestRules.GiveCard(next, hunter.Id, ground.CardId, random, content, events);
 
         if (pointsLeft == 0)
             next = TurnRules.EndTurn(next, random, content, events);

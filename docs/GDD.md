@@ -185,6 +185,19 @@ Dano = \max\big(1,\ (ATQ + 1d6) - (DEF + 1d6_{alvo})\big)
 | Lento | Armadura pesada | -1 VEL | Enquanto equipado |
 | Marcado | Carregar o tesouro-alvo | Visível a todos no mapa | Enquanto carrega |
 
+**Esclarecimentos de implementação (fatia 3)**
+
+- A fase dos monstros roda automaticamente quando o último caçador da rodada encerra o turno; monstros não têm SOR (nunca dão crítico nem esquivam) e não roubam cartas.
+- Mímico: 15% dos baús comuns (nunca o baú-alvo), sorteado no setup; ao abrir, vira monstro na célula e ataca na hora (os 2 PA são gastos, nenhuma carta sai).
+- Roubo só após dano de ataque (normal ou especial), nunca de bomba/armadilha; empate no teste de SOR protege a vítima.
+- Caçador caído larga só a mão; o equipamento fica com ele. Veneno pode derrubar (sem XP para ninguém).
+- Cartas ativas levam `effect` + `params` no JSON (ex.: `"effect": "heal", "params": {"amount": 8}`); um efeito pode servir a várias cartas.
+- Ataques especiais custam 2 PA e usam a fórmula normal. Investida: alvo em linha reta a 2–3 células com caminho livre, o atacante avança e ataca com +2 ATQ. Rasteira derruba as cartas no chão da célula do alvo.
+- Bomba: célula-alvo a até 3 passos; 3×3 atinge caçadores e monstros, inclusive quem joga. Arremessos (Pedra, Faca, Óleo) dão dano fixo sem dados.
+- Armadilhas: uma por célula, nunca na saída; invisíveis; disparam em caçadores (menos o dono) e em monstros (Alarme e veneno só afetam caçadores). Alarme atrai monstros sem alvo à vista por 3 rodadas.
+- Veneno tica (−2 PV) no início de cada um dos 3 turnos seguintes. Preso pula o próximo turno; em monstro, pula a próxima fase.
+- Chefe: entra numa célula livre da sala da saída na rodada 15 ou ao pegar o tesouro-alvo (`BossRound` = 0 desliga); sopra a cada 3 ações próprias numa linha ortogonal de 3 células na direção do caçador mais próximo, parando em paredes; o sopro não pode ser esquivado. Loot rara garantida ao derrotá-lo.
+
 ## Mapa, monstros e chefe
 
 O dungeon é gerado no servidor a partir de uma seed; o cliente recebe a seed e o layout, nunca gera sozinho. Visual isométrico 2D (sprites sobre grid), como o original.

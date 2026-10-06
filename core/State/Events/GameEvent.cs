@@ -86,6 +86,12 @@ public sealed record AlarmRaised(Position Position, int Rounds) : GameEvent;
 /// <summary>Cartas derrubadas da mão (Rasteira) caem no chão da célula do alvo.</summary>
 public sealed record CardsDropped(int HunterId, Position Position, IReadOnlyList<string> Cards) : GameEvent;
 
+/// <summary>O chefe entrou no mapa (sala da saída).</summary>
+public sealed record BossAppeared(int MonsterId, Position Position) : GameEvent;
+
+/// <summary>Sopro do chefe: as células atingidas; o dano vem em DamageDealt com causa "breath".</summary>
+public sealed record BossBreath(int MonsterId, IReadOnlyList<Position> Cells) : GameEvent;
+
 /// <summary>Fase dos monstros encerrada (fim da rodada).</summary>
 public sealed record MonsterPhaseEnded(int Round) : GameEvent;
 

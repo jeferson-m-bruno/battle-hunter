@@ -158,67 +158,67 @@ A fórmula de dano, monstros, PvP com roubo de carta e os estados. Ao fim, todas
 
 **Fórmula de dano**
 
-- [ ] Ação `Attack`: 2 PA, alvo adjacente ortogonal (monstro ou caçador)
-- [ ] Dano = max(1, (ATQ + 1d6) − (DEF + 1d6 do alvo))
-- [ ] Crítico: d6 do atacante = 6 e 1d6 ≤ SOR → dano dobra
-- [ ] Esquiva: d6 do defensor = 6 e 1d6 ≤ SOR do defensor → dano zero
-- [ ] Eventos `AttackResolved` com os dados rolados, para o cliente animar
+- [x] Ação `Attack`: 2 PA, alvo adjacente ortogonal (monstro ou caçador)
+- [x] Dano = max(1, (ATQ + 1d6) − (DEF + 1d6 do alvo))
+- [x] Crítico: d6 do atacante = 6 e 1d6 ≤ SOR → dano dobra
+- [x] Esquiva: d6 do defensor = 6 e 1d6 ≤ SOR do defensor → dano zero
+- [x] Eventos `AttackResolved` com os dados rolados, para o cliente animar
 
 **Monstros (core + data/monsters.json)**
 
-- [ ] Modelo `Monster` com PV, ATQ, DEF, XP, tabela de loot e comportamento
-- [ ] Escrever `monsters.json`: Kobold, Esqueleto, Aranha, Orc, Mímico, Dragão Vermelho
-- [ ] Spawn inicial: 1 monstro por sala sem caçador
-- [ ] Spawn contínuo: +1 monstro a cada 5 rodadas num spawn aleatório
-- [ ] Turno dos monstros após os 4 caçadores: 1d6 de movimento, persegue o mais próximo em linha de visão, ataca se adjacente (movimento simples; a FSM completa entra na fatia 4)
-- [ ] Derrotar monstro dá XP e, com 1d6 ≤ SOR, uma carta da tabela de loot dele
-- [ ] Mímico: aparece como baú e ataca ao ser aberto
-- [ ] Aranha envenena ao acertar
+- [x] Modelo `Monster` com PV, ATQ, DEF, XP, tabela de loot e comportamento
+- [x] Escrever `monsters.json`: Kobold, Esqueleto, Aranha, Orc, Mímico, Dragão Vermelho
+- [x] Spawn inicial: 1 monstro por sala sem caçador
+- [x] Spawn contínuo: +1 monstro a cada 5 rodadas num spawn aleatório
+- [x] Turno dos monstros após os 4 caçadores: 1d6 de movimento, persegue o mais próximo em linha de visão, ataca se adjacente (movimento simples; a FSM completa entra na fatia 4)
+- [x] Derrotar monstro dá XP e, com 1d6 ≤ SOR, uma carta da tabela de loot dele
+- [x] Mímico: aparece como baú e ataca ao ser aberto
+- [x] Aranha envenena ao acertar
 
 **Chefe**
 
-- [ ] Dragão aparece na rodada 15 ou quando o tesouro-alvo é pego, na sala da saída
-- [ ] Sopro: linha de 3 células a cada 3 turnos, 8 de dano fixo, ignora DEF
-- [ ] Derrotá-lo dá 150 XP e uma carta rara garantida
+- [x] Dragão aparece na rodada 15 ou quando o tesouro-alvo é pego, na sala da saída
+- [x] Sopro: linha de 3 células a cada 3 turnos, 8 de dano fixo, ignora DEF
+- [x] Derrotá-lo dá 150 XP e uma carta rara garantida
 
 **PvP e roubo**
 
-- [ ] Após dano de caçador em caçador: teste de roubo (1d6 + SOR do alvo < 1d6 + SOR do atacante)
-- [ ] Roubo pega 1 carta aleatória da mão; o tesouro-alvo tem prioridade no sorteio
-- [ ] Derrubar caçador dá XP = nível do alvo × 10
-- [ ] Caçador a 0 PV cai: toda a mão fica na célula, pegável por 1 PA
-- [ ] Sem ressurreição na v1
+- [x] Após dano de caçador em caçador: teste de roubo (1d6 + SOR do alvo < 1d6 + SOR do atacante)
+- [x] Roubo pega 1 carta aleatória da mão; o tesouro-alvo tem prioridade no sorteio
+- [x] Derrubar caçador dá XP = nível do alvo × 10
+- [x] Caçador a 0 PV cai: toda a mão fica na célula, pegável por 1 PA
+- [x] Sem ressurreição na v1
 
 **Cartas ativas**
 
-- [ ] Ação `UseCard`: 1 PA para consumível, 2 PA para armadilha na célula atual
-- [ ] Efeitos de consumível: Poção (+8 PV), Antídoto, Bomba (3 de dano em área 3×3)
-- [ ] Armadilhas: Fosso (4 de dano), Rede (perde o próximo turno), Alarme (atrai monstros); disparam ao pisar
-- [ ] Ataques especiais no lugar do ataque normal, descartam: Golpe Duplo, Investida (2 células), Rasteira (derruba 2 cartas da mão do alvo)
-- [ ] Escrever em `cards.json`: 12 consumíveis, 6 armadilhas, 8 ataques especiais (movido da fatia 2)
-- [ ] Cada efeito é uma função pura em `core/Cards/Effects` com teste próprio
+- [x] Ação `UseCard`: 1 PA para consumível, 2 PA para armadilha na célula atual
+- [x] Efeitos de consumível: Poção (+8 PV), Antídoto, Bomba (3 de dano em área 3×3)
+- [x] Armadilhas: Fosso (4 de dano), Rede (perde o próximo turno), Alarme (atrai monstros); disparam ao pisar
+- [x] Ataques especiais no lugar do ataque normal, descartam: Golpe Duplo, Investida (2 células), Rasteira (derruba 2 cartas da mão do alvo)
+- [x] Escrever em `cards.json`: 12 consumíveis, 6 armadilhas, 8 ataques especiais (movido da fatia 2)
+- [x] Cada efeito é uma função pura em `core/Cards/Effects` com teste próprio
 
 **Estados**
 
-- [ ] Veneno: −2 PV no início do turno por 3 turnos ou até Antídoto
-- [ ] Preso: perde o próximo turno
-- [ ] Lento: −1 VEL enquanto armadura pesada equipada
-- [ ] Marcado: já feito na fatia 2; confirmar que persiste após roubo
+- [x] Veneno: −2 PV no início do turno por 3 turnos ou até Antídoto
+- [x] Preso: perde o próximo turno
+- [x] Lento: −1 VEL enquanto armadura pesada equipada
+- [x] Marcado: já feito na fatia 2; confirmar que persiste após roubo
 
 **Testes**
 
-- [ ] Dano mínimo é 1
-- [ ] Crítico dobra o dano com seed que força 6 e SOR suficiente
-- [ ] Esquiva zera o dano
-- [ ] Roubo transfere o tesouro-alvo com prioridade
-- [ ] Caçador derrubado larga a mão inteira na célula
-- [ ] Sopro do chefe ignora DEF e acerta as 3 células
-- [ ] Veneno expira após 3 turnos
-- [ ] Um teste por efeito de carta registrado
+- [x] Dano mínimo é 1
+- [x] Crítico dobra o dano com seed que força 6 e SOR suficiente
+- [x] Esquiva zera o dano
+- [x] Roubo transfere o tesouro-alvo com prioridade
+- [x] Caçador derrubado larga a mão inteira na célula
+- [x] Sopro do chefe ignora DEF e acerta as 3 células
+- [x] Veneno expira após 3 turnos
+- [x] Um teste por efeito de carta registrado
 
 **Gate da fatia 3**
 
-- [ ] Cada regra das seções Combate e Sistema de cartas do GDD tem ao menos um teste nomeado Given_When_Then
+- [x] Cada regra das seções Combate e Sistema de cartas do GDD tem ao menos um teste nomeado Given_When_Then
 
 ## Fatia 4 — IA e simulação
 

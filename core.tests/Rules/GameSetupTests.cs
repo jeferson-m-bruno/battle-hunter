@@ -56,7 +56,7 @@ public class GameSetupTests
         // Partida completa sobre um mapa gerado: o caçador 1 anda até o baú-alvo, abre, anda até a saída e sai.
         var random = new SeededRandom(2026);
         var map = Map(2026);
-        var state = GameSetup.Create(new GameConfig(MaxRounds: 200, MimicChancePercent: 0, MonsterSpawnInterval: 0), map, FourHunters().Take(1).ToList(), "treasure_lost_crown", random, TestContent.Default)
+        var state = GameSetup.Create(new GameConfig(MaxRounds: 200, MimicChancePercent: 0, MonsterSpawnInterval: 0, BossRound: 0), map, FourHunters().Take(1).ToList(), "treasure_lost_crown", random, TestContent.Default)
             .WithMonsters();
         state = state.Apply(new StartGame(), random).State;
 
