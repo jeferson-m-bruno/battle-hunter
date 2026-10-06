@@ -1,0 +1,37 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+TestResults/
+*.binlog
+
+# Unity (client/)
+client/[Ll]ibrary/
+client/[Tt]emp/
+client/[Oo]bj/
+client/[Bb]uild/
+client/[Bb]uilds/
+client/[Ll]ogs/
+client/[Uu]ser[Ss]ettings/
+client/[Mm]emoryCaptures/
+client/[Rr]ecordings/
+client/.vsconfig
+client/*.csproj
+client/*.sln
+client/.idea/
+client/.vscode/
+client/*.apk
+client/*.aab
+client/*.unitypackage
+client/crashlytics-build.properties
+
+# Gerado por tools/sync-data.sh (fonte é data/)
+client/Assets/_Project/Data/
+
+# IDE / SO
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Core não pode referenciar UnityEngine
+        run: |
+          if grep -rn "UnityEngine" core/ --include="*.cs" --include="*.csproj"; then
+            echo "::error::core/ referencia UnityEngine"
+            exit 1
+          fi
+
+      - name: Build do core fora do Unity
+        run: dotnet build core -c Release --nologo
+
+      - name: Testes
+        run: dotnet test core.tests -c Release --nologo
+
+      - name: Build do servidor
+        run: dotnet build server -c Release --nologo
