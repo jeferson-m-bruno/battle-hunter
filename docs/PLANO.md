@@ -271,7 +271,7 @@ Caçadores e monstros controlados por IA sobre a mesma API de ações de um joga
 
 **Gate da fatia 4**
 
-- [ ] `./tools/simulate.sh 1000`: nenhum perfil acima de 35% de vitórias e duração média de 18 a 25 rodadas
+- [x] `./tools/simulate.sh 1000`: nenhum perfil acima de 35% de vitórias e duração média de 18 a 25 rodadas
 
 ## Fatia 5 — Cliente Unity offline
 
