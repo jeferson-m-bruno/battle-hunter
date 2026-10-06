@@ -28,6 +28,7 @@ public static class Reducer
             Discard discard => HandRules.Discard(state, discard),
             Equip equip => HandRules.Equip(state, equip, random, content),
             Attack attack => CombatRules.Attack(state, attack, random, content),
+            PickUp pickUp => GroundRules.PickUp(state, pickUp, random, content),
             _ => Reject(state, action, $"Ação desconhecida: {action.GetType().Name}."),
         };
     }

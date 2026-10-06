@@ -82,8 +82,14 @@ internal static class CombatRules
         else if (critical)
             damage *= 2;
 
-        return ApplyDamage(state, attacker, target, damage, random, content, events,
+        state = ApplyDamage(state, attacker, target, damage, random, content, events,
             hpLeft => new AttackResolved(attacker, target, attackerDie, defenderDie, damage, critical, dodged, hpLeft));
+
+        // PvP: após dano, teste de roubo (GDD, seção de cartas).
+        if (damage > 0 && attacker.Kind == CombatantKind.Hunter && target.Kind == CombatantKind.Hunter)
+            state = StealRules.TryStealAfterHit(state, attacker.Id, target.Id, random, content, events);
+
+        return state;
     }
 
     /// <summary>Aplica dano já calculado (ataque, sopro, bomba, armadilha) e resolve morte/queda.</summary>

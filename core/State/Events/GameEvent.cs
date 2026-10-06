@@ -52,6 +52,11 @@ public sealed record MonsterDefeated(int MonsterId, string TypeId, int KillerHun
 /// <summary>O caçador caiu (0 PV): sai da partida e a mão inteira fica no chão da célula.</summary>
 public sealed record HunterFell(int HunterId, Combatant KilledBy, Position Position, IReadOnlyList<string> DroppedCards) : GameEvent;
 
+/// <summary>O atacante roubou uma carta da mão do alvo após o dano. O id da carta só vai aos dois envolvidos.</summary>
+public sealed record CardStolen(int ThiefId, int VictimId, string CardId) : GameEvent;
+
+public sealed record CardPickedUp(int HunterId, string CardId, int ActionPointsLeft) : GameEvent;
+
 /// <summary>Fase dos monstros encerrada (fim da rodada).</summary>
 public sealed record MonsterPhaseEnded(int Round) : GameEvent;
 
