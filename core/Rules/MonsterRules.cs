@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using BattleHunter.Core.Ai;
 using BattleHunter.Core.Cards;
 using BattleHunter.Core.Map;
 using BattleHunter.Core.State;
@@ -8,9 +10,8 @@ using BattleHunter.Core.State.Events;
 namespace BattleHunter.Core.Rules;
 
 /// <summary>
-/// Monstros (GDD): fase ao fim de cada rodada — cada monstro rola 1d6 de movimento e persegue o caçador
-/// mais próximo em linha de visão; se adjacente, ataca em vez de mover. Sem alvo à vista, vai ao Alarme.
-/// Spawn inicial e periódico. A máquina de estados por tipo entra na fatia 4.
+/// Monstros (GDD): fase ao fim de cada rodada — cada monstro decide pela FSM (MonsterBrain), rola 1d6 de
+/// movimento quando persegue e ataca quando adjacente. Spawn inicial e periódico; derrota com XP e loot.
 /// </summary>
 internal static class MonsterRules
 {
@@ -47,38 +48,39 @@ internal static class MonsterRules
         if (content.Monsters.Get(monster.TypeId).Behavior == MonsterBehavior.Boss && monster.ActionsTaken % BossRules.BreathEvery == 0)
             return BossRules.Breath(state, monsterId, random, content, events);
 
-        var target = NearestVisibleHunter(state, monster);
-        if (target != null && monster.Position.IsOrthogonallyAdjacentTo(target.Position))
-            return CombatRules.ResolveAttack(state, Combatant.MonsterRef(monsterId), Combatant.HunterRef(target.Id), random, content, events);
+        var decision = MonsterBrain.Decide(state, monster, content);
+        if (decision.State != monster.State)
+        {
+            events.Add(new MonsterStateChanged(monsterId, monster.State, decision.State));
+            state = state.WithMonster(monster with { State = decision.State });
+        }
 
-        var destination = target?.Position ?? state.Alarm?.Position;
-        if (destination == null)
-            return state;
-
-        return MoveToward(state, monsterId, destination, random.NextD6(), stopAdjacent: target != null, random, content, events);
+        return decision.State switch
+        {
+            MonsterState.Attacking => CombatRules.ResolveAttack(state, Combatant.MonsterRef(monsterId), Combatant.HunterRef(decision.TargetHunterId!.Value), random, content, events),
+            MonsterState.Chasing => MoveToward(state, monsterId, decision.Destination!, random.NextD6(), stopAdjacent: decision.TargetHunterId != null, decision.IsPassable, random, content, events),
+            _ => state,
+        };
     }
 
-    /// <summary>Anda até <paramref name="steps"/> células pelo caminho mais curto; dispara armadilhas no caminho.</summary>
-    private static GameState MoveToward(GameState state, int monsterId, Position destination, int steps, bool stopAdjacent, IRandom random, GameContent content, List<GameEvent> events)
+    /// <summary>Anda até <paramref name="steps"/> células pelo caminho A*; dispara armadilhas no caminho.</summary>
+    private static GameState MoveToward(GameState state, int monsterId, Position destination, int steps, bool stopAdjacent, Func<Position, bool>? restriction, IRandom random, GameContent content, List<GameEvent> events)
     {
         var from = state.Monster(monsterId).Position;
         var position = from;
 
-        // Caminho até o destino: o destino em si conta, as outras criaturas bloqueiam.
-        var distances = Pathfinding.Distances(state.Map, destination, p => state.Map.IsWalkable(p) && !state.IsOccupied(p) || p == position);
+        bool Passable(Position p) => state.Map.IsWalkable(p) && !state.IsOccupied(p) && (restriction == null || restriction(p));
 
-        for (var i = 0; i < steps; i++)
+        var path = Pathfinding.AStar(state.Map, from, destination, Passable);
+        if (path == null)
+            return state;
+
+        foreach (var next in path.Take(steps))
         {
-            if (position == destination || (stopAdjacent && position.IsOrthogonallyAdjacentTo(destination)))
+            if (next == destination || (stopAdjacent && position.IsOrthogonallyAdjacentTo(destination)))
                 break;
 
-            var next = Pathfinding.Neighbors(position)
-                .Where(n => distances.ContainsKey(n) && state.Map.IsWalkable(n) && !state.IsOccupied(n))
-                .OrderBy(n => distances[n])
-                .ThenBy(n => n.Y).ThenBy(n => n.X)
-                .FirstOrDefault();
-
-            if (next == null || distances[next] >= distances[position])
+            if (!Passable(next))
                 break;
 
             position = next;
@@ -93,13 +95,6 @@ internal static class MonsterRules
 
         return state;
     }
-
-    private static Hunter? NearestVisibleHunter(GameState state, Monster monster) =>
-        state.Hunters
-            .Where(h => h.IsActive && LineOfSight.IsClear(state.Map, monster.Position, h.Position))
-            .OrderBy(h => h.Position.DistanceTo(monster.Position))
-            .ThenBy(h => h.Id)
-            .FirstOrDefault();
 
     /// <summary>Monstro derrotado: some do mapa, dá XP ao caçador e, com 1d6 ≤ SOR, uma carta da sua tabela de loot.</summary>
     public static GameState Defeat(GameState state, int monsterId, Combatant killedBy, IRandom random, GameContent content, List<GameEvent> events)

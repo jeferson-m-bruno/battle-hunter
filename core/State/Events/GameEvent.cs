@@ -47,6 +47,8 @@ public sealed record MonsterSpawned(int MonsterId, string TypeId, Position Posit
 
 public sealed record MonsterMoved(int MonsterId, Position From, Position To) : GameEvent;
 
+public sealed record MonsterStateChanged(int MonsterId, MonsterState From, MonsterState To) : GameEvent;
+
 public sealed record MonsterDefeated(int MonsterId, string TypeId, int KillerHunterId, int XpGained) : GameEvent;
 
 /// <summary>O caçador caiu (0 PV): sai da partida e a mão inteira fica no chão da célula.</summary>

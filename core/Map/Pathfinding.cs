@@ -4,7 +4,7 @@ using BattleHunter.Core.State;
 
 namespace BattleHunter.Core.Map;
 
-/// <summary>BFS no grid com custo 1 por célula. A* (fatia 4) entra ao lado.</summary>
+/// <summary>BFS (distâncias) e A* (caminho) no grid, custo 1 por célula, 4 vizinhos.</summary>
 public static class Pathfinding
 {
     private static readonly (int Dx, int Dy)[] Directions = { (1, 0), (-1, 0), (0, 1), (0, -1) };
@@ -56,5 +56,76 @@ public static class Pathfinding
         }
 
         return best;
+    }
+
+    /// <summary>
+    /// A* com heurística de Manhattan. Devolve o caminho de <paramref name="from"/> (exclusive) até
+    /// <paramref name="to"/> (inclusive), ou null se não há caminho. O destino sempre conta como passável;
+    /// desempate determinístico (menor f, depois menor h, depois y, depois x).
+    /// </summary>
+    public static IReadOnlyList<Position>? AStar(GridMap map, Position from, Position to, Func<Position, bool>? isPassable = null)
+    {
+        var passable = isPassable ?? map.IsWalkable;
+        if (!map.IsInside(to))
+            return null;
+
+        if (from == to)
+            return Array.Empty<Position>();
+
+        var open = new SortedSet<(int F, int H, int Y, int X)>();
+        var g = new Dictionary<Position, int> { [from] = 0 };
+        var cameFrom = new Dictionary<Position, Position>();
+        var closed = new HashSet<Position>();
+
+        open.Add((from.DistanceTo(to), from.DistanceTo(to), from.Y, from.X));
+
+        while (open.Count > 0)
+        {
+            var best = open.Min;
+            open.Remove(best);
+            var current = new Position(best.X, best.Y);
+
+            if (current == to)
+                return Reconstruct(cameFrom, to);
+
+            if (!closed.Add(current))
+                continue;
+
+            foreach (var next in Neighbors(current))
+            {
+                if (closed.Contains(next) || !map.IsInside(next))
+                    continue;
+
+                if (next != to && !passable(next))
+                    continue;
+
+                var tentative = g[current] + 1;
+                if (g.TryGetValue(next, out var known) && tentative >= known)
+                    continue;
+
+                g[next] = tentative;
+                cameFrom[next] = current;
+                var h = next.DistanceTo(to);
+                open.Add((tentative + h, h, next.Y, next.X));
+            }
+        }
+
+        return null;
+    }
+
+    private static List<Position> Reconstruct(Dictionary<Position, Position> cameFrom, Position to)
+    {
+        var path = new List<Position> { to };
+        var current = to;
+        while (cameFrom.TryGetValue(current, out var prev))
+        {
+            if (!cameFrom.ContainsKey(prev))
+                break;
+            path.Add(prev);
+            current = prev;
+        }
+
+        path.Reverse();
+        return path;
     }
 }
