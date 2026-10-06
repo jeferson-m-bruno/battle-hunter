@@ -62,44 +62,50 @@ internal static class TurnRules
     }
 
     /// <summary>
-    /// Encerra o turno atual e abre o próximo, pulando caçadores que saíram ou caíram.
-    /// Ao dar a volta na ordem: fase dos monstros, nova rodada, spawn periódico. Verifica as condições de fim.
+    /// Encerra o turno atual e abre o próximo, pulando caçadores que saíram, caíram ou estão presos.
+    /// Ao dar a volta na ordem: fase dos monstros, nova rodada, spawn periódico e chefe. Verifica as condições de fim.
     /// </summary>
     public static GameState EndTurn(GameState state, IRandom random, GameContent content, List<GameEvent> events)
     {
         events.Add(new TurnEnded(state.CurrentHunterId));
+        var after = state.TurnIndex;
 
-        if (!AnyHunterActive(state))
-            return Finish(state, GameEndReason.AllHuntersOut, winnerId: null, events);
-
-        var index = NextActiveIndex(state, state.TurnIndex);
-        var round = state.Round;
-
-        if (index == null)
+        while (true)
         {
-            // Todos os caçadores desta rodada já agiram: vez dos monstros, depois a rodada vira.
-            state = MonsterRules.Phase(state, random, content, events);
             if (!AnyHunterActive(state))
                 return Finish(state, GameEndReason.AllHuntersOut, winnerId: null, events);
 
-            round++;
-            if (round > state.Config.MaxRounds)
-                return Finish(state, GameEndReason.RoundLimit, winnerId: null, events);
+            var index = NextActiveIndex(state, after);
+            if (index == null)
+            {
+                // Todos os caçadores desta rodada já agiram: vez dos monstros, depois a rodada vira.
+                state = MonsterRules.Phase(state, random, content, events);
+                if (!AnyHunterActive(state))
+                    return Finish(state, GameEndReason.AllHuntersOut, winnerId: null, events);
 
-            state = state with { Round = round };
-            state = MonsterRules.SpawnIfDue(state, random, content, events);
-            index = NextActiveIndex(state, -1);
+                var round = state.Round + 1;
+                if (round > state.Config.MaxRounds)
+                    return Finish(state, GameEndReason.RoundLimit, winnerId: null, events);
+
+                state = state with { Round = round };
+                state = MonsterRules.SpawnIfDue(state, random, content, events);
+                state = BossRules.SpawnIfDue(state, random, content, events);
+                after = -1;
+                continue;
+            }
+
+            var hunterId = state.TurnOrder[index.Value];
+            state = StatusRules.OnTurnStart(state, hunterId, random, content, events, out var skip);
+            if (skip || !state.Hunter(hunterId).IsActive)
+            {
+                after = index.Value;
+                continue;
+            }
+
+            var next = state with { TurnIndex = index.Value, ActionPoints = 0, Phase = GamePhase.AwaitingRoll };
+            events.Add(new TurnStarted(next.CurrentHunterId, next.Round));
+            return next;
         }
-
-        var next = state with
-        {
-            TurnIndex = index!.Value,
-            Round = round,
-            ActionPoints = 0,
-            Phase = GamePhase.AwaitingRoll,
-        };
-        events.Add(new TurnStarted(next.CurrentHunterId, next.Round));
-        return next;
     }
 
     public static GameState Finish(GameState state, GameEndReason reason, int? winnerId, List<GameEvent> events)

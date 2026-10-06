@@ -30,5 +30,34 @@
 
   { "id": "treasure_kobold_fang", "name": "Dente de Kobold", "type": "treasure", "rarity": "rare", "cost": 0, "sell": 100, "mods": null, "effect": null },
   { "id": "treasure_dragon_eye",  "name": "Olho de Dragão",  "type": "treasure", "rarity": "rare", "cost": 0, "sell": 250, "mods": null, "effect": null },
-  { "id": "treasure_lost_crown",  "name": "Coroa Perdida",   "type": "treasure", "rarity": "rare", "cost": 0, "sell": 500, "mods": null, "effect": null }
+  { "id": "treasure_lost_crown",  "name": "Coroa Perdida",   "type": "treasure", "rarity": "rare", "cost": 0, "sell": 500, "mods": null, "effect": null },
+
+  { "id": "bread",             "name": "Pão",               "type": "consumable", "rarity": "common",   "cost": 1, "sell": 5,  "mods": null, "effect": "heal",        "params": { "amount": 4 } },
+  { "id": "potion",            "name": "Poção",             "type": "consumable", "rarity": "common",   "cost": 1, "sell": 15, "mods": null, "effect": "heal",        "params": { "amount": 8 } },
+  { "id": "potion_large",      "name": "Poção Grande",      "type": "consumable", "rarity": "uncommon", "cost": 1, "sell": 35, "mods": null, "effect": "heal",        "params": { "amount": 15 } },
+  { "id": "elixir",            "name": "Elixir",            "type": "consumable", "rarity": "rare",     "cost": 1, "sell": 80, "mods": null, "effect": "heal",        "params": { "amount": 99 } },
+  { "id": "antidote",          "name": "Antídoto",          "type": "consumable", "rarity": "common",   "cost": 1, "sell": 10, "mods": null, "effect": "cure_poison", "params": null },
+  { "id": "bomb",              "name": "Bomba",             "type": "consumable", "rarity": "uncommon", "cost": 1, "sell": 30, "mods": null, "effect": "bomb",        "params": { "damage": 3, "range": 3 } },
+  { "id": "bomb_large",        "name": "Bomba Grande",      "type": "consumable", "rarity": "rare",     "cost": 1, "sell": 70, "mods": null, "effect": "bomb",        "params": { "damage": 5, "range": 3 } },
+  { "id": "adrenaline",        "name": "Adrenalina",        "type": "consumable", "rarity": "uncommon", "cost": 1, "sell": 30, "mods": null, "effect": "gain_ap",     "params": { "amount": 2 } },
+  { "id": "adrenaline_strong", "name": "Adrenalina Forte",  "type": "consumable", "rarity": "rare",     "cost": 1, "sell": 70, "mods": null, "effect": "gain_ap",     "params": { "amount": 4 } },
+  { "id": "rock",              "name": "Pedra",             "type": "consumable", "rarity": "common",   "cost": 1, "sell": 5,  "mods": null, "effect": "throw",       "params": { "damage": 2, "range": 3 } },
+  { "id": "throwing_knife",    "name": "Faca de Arremesso", "type": "consumable", "rarity": "uncommon", "cost": 1, "sell": 25, "mods": null, "effect": "throw",       "params": { "damage": 4, "range": 3 } },
+  { "id": "oil_flask",         "name": "Frasco de Óleo",    "type": "consumable", "rarity": "common",   "cost": 1, "sell": 15, "mods": null, "effect": "throw",       "params": { "damage": 3, "range": 2 } },
+
+  { "id": "trap_pit",      "name": "Fosso",               "type": "trap", "rarity": "common",   "cost": 2, "sell": 15, "mods": null, "effect": "trap", "params": { "damage": 4 } },
+  { "id": "trap_pit_deep", "name": "Fosso Profundo",      "type": "trap", "rarity": "rare",     "cost": 2, "sell": 60, "mods": null, "effect": "trap", "params": { "damage": 7 } },
+  { "id": "trap_net",      "name": "Rede",                "type": "trap", "rarity": "uncommon", "cost": 2, "sell": 25, "mods": null, "effect": "trap", "params": { "net": 1 } },
+  { "id": "trap_alarm",    "name": "Alarme",              "type": "trap", "rarity": "common",   "cost": 2, "sell": 10, "mods": null, "effect": "trap", "params": { "alarm": 3 } },
+  { "id": "trap_spikes",   "name": "Espinhos Venenosos",  "type": "trap", "rarity": "uncommon", "cost": 2, "sell": 30, "mods": null, "effect": "trap", "params": { "damage": 2, "poison": 1 } },
+  { "id": "trap_bear",     "name": "Mandíbula de Ferro",  "type": "trap", "rarity": "rare",     "cost": 2, "sell": 65, "mods": null, "effect": "trap", "params": { "damage": 5, "net": 1 } },
+
+  { "id": "double_strike",  "name": "Golpe Duplo",     "type": "special_attack", "rarity": "uncommon", "cost": 2, "sell": 40, "mods": null, "effect": "double_strike", "params": null },
+  { "id": "charge",         "name": "Investida",       "type": "special_attack", "rarity": "uncommon", "cost": 2, "sell": 35, "mods": null, "effect": "charge",        "params": { "range": 3, "bonus_atk": 2 } },
+  { "id": "trip",           "name": "Rasteira",        "type": "special_attack", "rarity": "common",   "cost": 2, "sell": 20, "mods": null, "effect": "trip",          "params": { "cards": 2 } },
+  { "id": "trip_brutal",    "name": "Rasteira Brutal", "type": "special_attack", "rarity": "rare",     "cost": 2, "sell": 60, "mods": null, "effect": "trip",          "params": { "cards": 4 } },
+  { "id": "power_strike",   "name": "Golpe Poderoso",  "type": "special_attack", "rarity": "common",   "cost": 2, "sell": 20, "mods": null, "effect": "strike",        "params": { "bonus_atk": 4 } },
+  { "id": "precise_strike", "name": "Golpe Preciso",   "type": "special_attack", "rarity": "uncommon", "cost": 2, "sell": 35, "mods": null, "effect": "strike",        "params": { "bonus_atk": 1, "no_dodge": 1 } },
+  { "id": "whirlwind",      "name": "Redemoinho",      "type": "special_attack", "rarity": "rare",     "cost": 2, "sell": 70, "mods": null, "effect": "whirlwind",     "params": null },
+  { "id": "life_steal",     "name": "Drenar",          "type": "special_attack", "rarity": "uncommon", "cost": 2, "sell": 40, "mods": null, "effect": "life_steal",    "params": null }
 ]

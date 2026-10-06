@@ -9,8 +9,8 @@ namespace BattleHunter.Core.Rules;
 
 /// <summary>
 /// Monstros (GDD): fase ao fim de cada rodada — cada monstro rola 1d6 de movimento e persegue o caçador
-/// mais próximo em linha de visão; se adjacente, ataca em vez de mover. Spawn inicial e periódico.
-/// A máquina de estados por tipo entra na fatia 4.
+/// mais próximo em linha de visão; se adjacente, ataca em vez de mover. Sem alvo à vista, vai ao Alarme.
+/// Spawn inicial e periódico. A máquina de estados por tipo entra na fatia 4.
 /// </summary>
 internal static class MonsterRules
 {
@@ -19,7 +19,7 @@ internal static class MonsterRules
     {
         foreach (var id in state.Monsters.Select(m => m.Id).OrderBy(i => i).ToList())
         {
-            if (state.Monsters.All(m => m.Id != id))
+            if (!state.HasMonster(id))
                 continue;
 
             if (!state.Hunters.Any(h => h.IsActive))
@@ -28,6 +28,9 @@ internal static class MonsterRules
             state = Act(state, id, random, content, events);
         }
 
+        if (state.Alarm != null)
+            state = state with { Alarm = state.Alarm.RoundsLeft > 1 ? state.Alarm with { RoundsLeft = state.Alarm.RoundsLeft - 1 } : null };
+
         events.Add(new MonsterPhaseEnded(state.Round));
         return state;
     }
@@ -35,22 +38,34 @@ internal static class MonsterRules
     private static GameState Act(GameState state, int monsterId, IRandom random, GameContent content, List<GameEvent> events)
     {
         var monster = state.Monster(monsterId);
-        var target = NearestVisibleHunter(state, monster);
-        if (target == null)
-            return state;
+        if (monster.SkipsNextAction)
+            return state.WithMonster(monster with { SkipsNextAction = false });
 
-        if (monster.Position.IsOrthogonallyAdjacentTo(target.Position))
+        var target = NearestVisibleHunter(state, monster);
+        if (target != null && monster.Position.IsOrthogonallyAdjacentTo(target.Position))
             return CombatRules.ResolveAttack(state, Combatant.MonsterRef(monsterId), Combatant.HunterRef(target.Id), random, content, events);
 
-        var steps = random.NextD6();
-        var from = monster.Position;
+        var destination = target?.Position ?? state.Alarm?.Position;
+        if (destination == null)
+            return state;
+
+        return MoveToward(state, monsterId, destination, random.NextD6(), stopAdjacent: target != null, random, content, events);
+    }
+
+    /// <summary>Anda até <paramref name="steps"/> células pelo caminho mais curto; dispara armadilhas no caminho.</summary>
+    private static GameState MoveToward(GameState state, int monsterId, Position destination, int steps, bool stopAdjacent, IRandom random, GameContent content, List<GameEvent> events)
+    {
+        var from = state.Monster(monsterId).Position;
         var position = from;
 
-        // Caminho até o caçador: o alvo em si conta como destino, as outras criaturas bloqueiam.
-        var distances = Pathfinding.Distances(state.Map, target.Position, p => state.Map.IsWalkable(p) && !state.IsOccupied(p) || p == position);
+        // Caminho até o destino: o destino em si conta, as outras criaturas bloqueiam.
+        var distances = Pathfinding.Distances(state.Map, destination, p => state.Map.IsWalkable(p) && !state.IsOccupied(p) || p == position);
 
-        for (var i = 0; i < steps && !position.IsOrthogonallyAdjacentTo(target.Position); i++)
+        for (var i = 0; i < steps; i++)
         {
+            if (position == destination || (stopAdjacent && position.IsOrthogonallyAdjacentTo(destination)))
+                break;
+
             var next = Pathfinding.Neighbors(position)
                 .Where(n => distances.ContainsKey(n) && state.Map.IsWalkable(n) && !state.IsOccupied(n))
                 .OrderBy(n => distances[n])
@@ -61,7 +76,10 @@ internal static class MonsterRules
                 break;
 
             position = next;
-            state = state.WithMonster(monster with { Position = position });
+            state = state.WithMonster(state.Monster(monsterId) with { Position = position });
+            state = TrapRules.TriggerIfAny(state, Combatant.MonsterRef(monsterId), position, random, content, events);
+            if (!state.HasMonster(monsterId))
+                break;
         }
 
         if (position != from)

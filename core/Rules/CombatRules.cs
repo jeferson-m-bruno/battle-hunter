@@ -8,6 +8,12 @@ using BattleHunter.Core.State.Events;
 
 namespace BattleHunter.Core.Rules;
 
+/// <summary>Ajustes de um ataque especial sobre a fórmula normal.</summary>
+public sealed record AttackModifiers(int BonusAttack = 0, bool NoDodge = false)
+{
+    public static AttackModifiers None => new();
+}
+
 /// <summary>
 /// Fórmula de dano do GDD, usada por caçadores e monstros:
 /// dano = max(1, (ATQ + 1d6) − (DEF + 1d6 do alvo)); crítico dobra, esquiva zera.
@@ -59,22 +65,23 @@ internal static class CombatRules
         return hunter != null ? Combatant.HunterRef(hunter.Id) : null;
     }
 
-    /// <summary>Rola os dados, aplica o dano e resolve morte/queda. Serve para caçador ou monstro atacante.</summary>
-    public static GameState ResolveAttack(GameState state, Combatant attacker, Combatant target, IRandom random, GameContent content, List<GameEvent> events)
+    /// <summary>Rola os dados, aplica o dano e resolve morte/queda, veneno e roubo. Serve para caçador ou monstro atacante.</summary>
+    public static GameState ResolveAttack(GameState state, Combatant attacker, Combatant target, IRandom random, GameContent content, List<GameEvent> events, AttackModifiers? modifiers = null)
     {
+        var mods = modifiers ?? AttackModifiers.None;
         var (atk, atkLuck) = OffensiveStats(state, attacker, content);
         var (def, defLuck) = DefensiveStats(state, target, content);
 
         var attackerDie = random.NextD6();
         var defenderDie = random.NextD6();
-        var damage = Math.Max(1, atk + attackerDie - (def + defenderDie));
+        var damage = Math.Max(1, atk + mods.BonusAttack + attackerDie - (def + defenderDie));
         var critical = false;
         var dodged = false;
 
         if (attackerDie == 6 && random.NextD6() <= atkLuck)
             critical = true;
 
-        if (defenderDie == 6 && random.NextD6() <= defLuck)
+        if (!mods.NoDodge && defenderDie == 6 && random.NextD6() <= defLuck)
             dodged = true;
 
         if (dodged)
@@ -85,14 +92,21 @@ internal static class CombatRules
         state = ApplyDamage(state, attacker, target, damage, random, content, events,
             hpLeft => new AttackResolved(attacker, target, attackerDie, defenderDie, damage, critical, dodged, hpLeft));
 
+        if (damage == 0 || target.Kind != CombatantKind.Hunter || !state.Hunter(target.Id).IsActive)
+            return state;
+
+        // Aranha (e qualquer monstro com "poison"): envenena ao acertar.
+        if (attacker.Kind == CombatantKind.Monster && content.Monsters.Get(state.Monster(attacker.Id).TypeId).Poison)
+            state = StatusRules.Apply(state, target.Id, StatusKind.Poisoned, TrapRules.PoisonTurns, events);
+
         // PvP: após dano, teste de roubo (GDD, seção de cartas).
-        if (damage > 0 && attacker.Kind == CombatantKind.Hunter && target.Kind == CombatantKind.Hunter)
+        if (attacker.Kind == CombatantKind.Hunter)
             state = StealRules.TryStealAfterHit(state, attacker.Id, target.Id, random, content, events);
 
         return state;
     }
 
-    /// <summary>Aplica dano já calculado (ataque, sopro, bomba, armadilha) e resolve morte/queda.</summary>
+    /// <summary>Aplica dano já calculado (ataque, sopro, bomba, armadilha, veneno) e resolve morte/queda.</summary>
     public static GameState ApplyDamage(
         GameState state,
         Combatant source,
@@ -105,6 +119,9 @@ internal static class CombatRules
     {
         if (target.Kind == CombatantKind.Monster)
         {
+            if (!state.HasMonster(target.Id))
+                return state;
+
             var monster = state.Monster(target.Id);
             var hpLeft = Math.Max(0, monster.Hp - damage);
             events.Add(makeEvent(hpLeft));
@@ -114,6 +131,9 @@ internal static class CombatRules
         else
         {
             var hunter = state.Hunter(target.Id);
+            if (!hunter.IsActive)
+                return state;
+
             var hpLeft = Math.Max(0, hunter.Hp - damage);
             events.Add(makeEvent(hpLeft));
             state = state.WithHunter(hunter with { Hp = hpLeft });
@@ -128,10 +148,10 @@ internal static class CombatRules
         var dropped = hunter.Hand.ToList();
 
         state = state
-            .WithHunter(hunter with { Status = HunterStatus.Fallen, Hand = Array.Empty<string>() })
+            .WithHunter(hunter with { Status = HunterStatus.Fallen, Hand = Array.Empty<string>(), Statuses = Array.Empty<StatusEffect>() })
             .WithGroundCards(dropped.Select(c => new GroundCard(hunter.Position, c)));
 
-        if (killedBy.Kind == CombatantKind.Hunter)
+        if (killedBy.Kind == CombatantKind.Hunter && killedBy.Id != hunterId)
         {
             var killer = state.Hunter(killedBy.Id);
             state = state.WithHunter(killer with { Xp = killer.Xp + hunter.Level * XpPerLevelOnPvpKill });

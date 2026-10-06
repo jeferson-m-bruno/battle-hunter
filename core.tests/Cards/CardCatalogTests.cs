@@ -15,6 +15,27 @@ public class CardCatalogTests
         Assert.Equal(8, Cards.Where(c => c.Type == CardType.Armor).Count);
         Assert.Equal(8, Cards.Where(c => c.Type == CardType.Accessory).Count);
         Assert.Equal(3, Cards.Where(c => c.Type == CardType.Treasure).Count);
+        Assert.Equal(12, Cards.Where(c => c.Type == CardType.Consumable).Count);
+        Assert.Equal(6, Cards.Where(c => c.Type == CardType.Trap).Count);
+        Assert.Equal(8, Cards.Where(c => c.Type == CardType.SpecialAttack).Count);
+        Assert.Equal(55, Cards.All.Count);
+    }
+
+    [Fact]
+    public void Given_EffectRegistry_When_Inspected_Then_EveryEffectIsUsedByAtLeastOneCard()
+    {
+        foreach (var id in EffectRegistry.Default.Ids)
+            Assert.Contains(Cards.All, c => c.Effect == id);
+    }
+
+    [Fact]
+    public void Given_Potion_When_Read_Then_HasHealParam()
+    {
+        var card = Cards.Get("potion");
+
+        Assert.Equal("heal", card.Effect);
+        Assert.Equal(8, card.Param("amount"));
+        Assert.Equal(0, card.Param("missing"));
     }
 
     [Fact]

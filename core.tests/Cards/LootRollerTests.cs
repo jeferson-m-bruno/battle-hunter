@@ -54,7 +54,7 @@ public class LootRollerTests
     {
         var catalog = new CardCatalog(new[]
         {
-            new Card("c1", "C1", CardType.Weapon, Rarity.Common, 1, 1, StatMods.None, null),
+            new Card("c1", "C1", CardType.Weapon, Rarity.Common, 1, 1, StatMods.None, null, new Dictionary<string, int>()),
         });
         var table = new LootTable("t", new[] { CardType.Weapon }, new[] { new RarityWeight(Rarity.Rare, 100, 0) });
 

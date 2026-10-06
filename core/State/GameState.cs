@@ -17,6 +17,8 @@ public sealed record GameState(
     IReadOnlyList<Monster> Monsters,
     IReadOnlyList<Position> MonsterSpawns,
     IReadOnlyList<GroundCard> GroundCards,
+    IReadOnlyList<Trap> Traps,
+    Alarm? Alarm,
     int NextMonsterId,
     string? TargetTreasureCardId,
     IReadOnlyList<int> TurnOrder,
@@ -53,6 +55,8 @@ public sealed record GameState(
             monsterList,
             (monsterSpawns ?? Array.Empty<Position>()).ToList(),
             GroundCards: Array.Empty<GroundCard>(),
+            Traps: Array.Empty<Trap>(),
+            Alarm: null,
             NextMonsterId: monsterList.Count == 0 ? 1 : monsterList.Max(m => m.Id) + 1,
             targetTreasureCardId,
             TurnOrder: Array.Empty<int>(),
@@ -83,6 +87,8 @@ public sealed record GameState(
 
     public Monster Monster(int id) => Monsters.First(m => m.Id == id);
 
+    public bool HasMonster(int id) => Monsters.Any(m => m.Id == id);
+
     public GameState WithMonster(Monster monster) =>
         this with { Monsters = Monsters.Select(m => m.Id == monster.Id ? monster : m).ToList() };
 
@@ -94,6 +100,11 @@ public sealed record GameState(
 
     public GameState WithGroundCards(IEnumerable<GroundCard> added) =>
         this with { GroundCards = GroundCards.Concat(added).ToList() };
+
+    public Trap? TrapAt(Position position) => Traps.FirstOrDefault(t => t.Position == position);
+
+    public GameState WithTrapRemoved(Trap trap) =>
+        this with { Traps = Traps.Where(t => t != trap).ToList() };
 
     /// <summary>Ocupada por um caçador ativo ou por um monstro.</summary>
     public bool IsOccupied(Position position) =>

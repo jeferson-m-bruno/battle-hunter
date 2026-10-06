@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -11,11 +10,27 @@ public sealed class EffectRegistry
 
     public EffectRegistry(IEnumerable<ICardEffect> effects)
     {
-        _effects = effects.ToDictionary(e => e.Id, StringComparer.Ordinal);
+        _effects = effects.ToDictionary(e => e.Id, System.StringComparer.Ordinal);
     }
 
-    /// <summary>Registro com todos os efeitos do jogo. Vazio até a fatia 3.</summary>
-    public static EffectRegistry Default { get; } = new(Array.Empty<ICardEffect>());
+    /// <summary>Registro com todos os efeitos do jogo. Novo efeito = nova classe aqui + teste + entrada no JSON.</summary>
+    public static EffectRegistry Default { get; } = new(new ICardEffect[]
+    {
+        new HealEffect(),
+        new CurePoisonEffect(),
+        new GainActionPointsEffect(),
+        new BombEffect(),
+        new ThrowEffect(),
+        new TrapEffect(),
+        new StrikeEffect(),
+        new DoubleStrikeEffect(),
+        new ChargeEffect(),
+        new TripEffect(),
+        new WhirlwindEffect(),
+        new LifeStealEffect(),
+    });
+
+    public IReadOnlyCollection<string> Ids => _effects.Keys;
 
     public bool Contains(string id) => _effects.ContainsKey(id);
 

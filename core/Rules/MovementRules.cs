@@ -32,18 +32,24 @@ internal static class MovementRules
             return Reducer.Reject(state, action, "Célula ocupada por outra criatura.");
 
         var pointsLeft = state.ActionPoints - MoveCost;
-        var next = state
-            .WithHunter(hunter with { Position = action.Target })
-            with { ActionPoints = pointsLeft };
+        var events = new List<GameEvent>();
+        var next = EnterCell(state with { ActionPoints = pointsLeft }, hunter.Id, action.Target, random, content, events);
 
-        var events = new List<GameEvent>
-        {
-            new HunterMoved(hunter.Id, hunter.Position, action.Target, pointsLeft),
-        };
+        if (next.Phase == GamePhase.Finished)
+            return new ReducerResult(next, events);
 
-        if (pointsLeft == 0)
+        if (pointsLeft == 0 || !next.Hunter(hunter.Id).IsActive)
             next = TurnRules.EndTurn(next, random, content, events);
 
         return new ReducerResult(next, events);
+    }
+
+    /// <summary>Move o caçador para a célula (sem validar) e dispara a armadilha que houver nela.</summary>
+    public static GameState EnterCell(GameState state, int hunterId, Position to, IRandom random, GameContent content, List<GameEvent> events)
+    {
+        var hunter = state.Hunter(hunterId);
+        events.Add(new HunterMoved(hunterId, hunter.Position, to, state.ActionPoints));
+        state = state.WithHunter(hunter with { Position = to });
+        return TrapRules.TriggerIfAny(state, Combatant.HunterRef(hunterId), to, random, content, events);
     }
 }

@@ -13,6 +13,14 @@ RARITY = {"common": "comum", "uncommon": "incomum", "rare": "rara"}
 MODS = {"hp": "PV", "atk": "ATQ", "def": "DEF", "spd": "VEL", "luck": "SOR"}
 
 
+def effect_text(c):
+    if not c.get("effect"):
+        return "—"
+    params = c.get("params") or {}
+    inner = ", ".join(f"{k}={v}" for k, v in params.items())
+    return f"`{c['effect']}`" + (f" ({inner})" if inner else "")
+
+
 def mods_text(mods):
     if not mods:
         return "—"
@@ -33,7 +41,7 @@ for type_id, title in TYPES.items():
             "| --- | --- | --- | --- | --- | --- | --- |"]
     for c in group:
         out.append(f"| `{c['id']}` | {c['name']} | {RARITY[c['rarity']]} | {c['cost']} | {c['sell']} | "
-                   f"{mods_text(c.get('mods'))} | {c.get('effect') or '—'} |")
+                   f"{mods_text(c.get('mods'))} | {effect_text(c)} |")
     out.append("")
 
 (ROOT / "docs" / "cards.md").write_text("\n".join(out), encoding="utf-8", newline="\n")

@@ -57,6 +57,35 @@ public sealed record CardStolen(int ThiefId, int VictimId, string CardId) : Game
 
 public sealed record CardPickedUp(int HunterId, string CardId, int ActionPointsLeft) : GameEvent;
 
+/// <summary>Carta ativa usada e descartada; Target é a célula-alvo quando o efeito pede.</summary>
+public sealed record CardUsed(int HunterId, string CardId, Position? Target, int ActionPointsLeft) : GameEvent;
+
+/// <summary>Dano sem rolagem (bomba, arremesso, armadilha, veneno). Cause = id da carta ou "poison".</summary>
+public sealed record DamageDealt(Combatant Source, Combatant Target, int Damage, int HpLeft, string Cause) : GameEvent;
+
+public sealed record HunterHealed(int HunterId, int Amount, int HpLeft) : GameEvent;
+
+public sealed record ActionPointsGained(int HunterId, int Amount, int ActionPointsLeft) : GameEvent;
+
+public sealed record StatusApplied(int HunterId, StatusKind Kind, int Turns) : GameEvent;
+
+public sealed record StatusRemoved(int HunterId, StatusKind Kind) : GameEvent;
+
+/// <summary>Caçador preso perdeu o turno.</summary>
+public sealed record TurnSkipped(int HunterId) : GameEvent;
+
+/// <summary>Informação privada do dono: a armadilha fica invisível aos outros até disparar.</summary>
+public sealed record TrapPlaced(int OwnerId, Position Position, string CardId) : GameEvent;
+
+public sealed record TrapTriggered(Position Position, string CardId, int OwnerId, Combatant Victim) : GameEvent;
+
+public sealed record MonsterEntangled(int MonsterId) : GameEvent;
+
+public sealed record AlarmRaised(Position Position, int Rounds) : GameEvent;
+
+/// <summary>Cartas derrubadas da mão (Rasteira) caem no chão da célula do alvo.</summary>
+public sealed record CardsDropped(int HunterId, Position Position, IReadOnlyList<string> Cards) : GameEvent;
+
 /// <summary>Fase dos monstros encerrada (fim da rodada).</summary>
 public sealed record MonsterPhaseEnded(int Round) : GameEvent;
 

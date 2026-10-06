@@ -10,6 +10,8 @@ namespace BattleHunter.Core.Cards;
 /// <summary>Todas as cartas do jogo, carregadas de data/cards.json.</summary>
 public sealed class CardCatalog
 {
+    private static readonly IReadOnlyDictionary<string, int> NoParams = new Dictionary<string, int>();
+
     private readonly Dictionary<string, Card> _cards;
 
     public CardCatalog(IEnumerable<Card> cards)
@@ -36,7 +38,7 @@ public sealed class CardCatalog
         return new CardCatalog(dtos.Select(d => d.ToCard()));
     }
 
-    /// <summary>Erros de consistência: ids duplicados são impedidos no construtor; aqui validam-se os efeitos.</summary>
+    /// <summary>Erros de consistência: ids duplicados são impedidos no construtor; aqui validam-se efeitos e tipos.</summary>
     public IReadOnlyList<string> Validate(EffectRegistry effects)
     {
         var errors = new List<string>();
@@ -44,6 +46,9 @@ public sealed class CardCatalog
         {
             if (card.Effect != null && !effects.Contains(card.Effect))
                 errors.Add($"Carta '{card.Id}' usa efeito não registrado '{card.Effect}'.");
+
+            if (card.IsUsable && card.Effect == null)
+                errors.Add($"Carta '{card.Id}' do tipo {card.Type} precisa de um efeito.");
 
             if (card.Type == CardType.Treasure && card.Mods != StatMods.None)
                 errors.Add($"Tesouro '{card.Id}' não pode ter modificadores.");
@@ -62,7 +67,8 @@ public sealed class CardCatalog
         public int Sell { get; set; }
         public StatMods? Mods { get; set; }
         public string? Effect { get; set; }
+        public Dictionary<string, int>? Params { get; set; }
 
-        public Card ToCard() => new(Id, Name, Type, Rarity, Cost, Sell, Mods ?? StatMods.None, Effect);
+        public Card ToCard() => new(Id, Name, Type, Rarity, Cost, Sell, Mods ?? StatMods.None, Effect, Params ?? NoParams);
     }
 }

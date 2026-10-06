@@ -14,7 +14,8 @@ public sealed record Hunter(
     IReadOnlyList<string> Hand,
     Equipment Equipment,
     int Level,
-    int Xp)
+    int Xp,
+    IReadOnlyList<StatusEffect> Statuses)
 {
     public static Hunter Create(
         int id,
@@ -24,7 +25,7 @@ public sealed record Hunter(
         IReadOnlyList<string>? hand = null,
         Equipment? equipment = null,
         int level = 1) =>
-        new(id, name, stats, stats.MaxHp, position, HunterStatus.Active, hand ?? Array.Empty<string>(), equipment ?? Equipment.None, level, Xp: 0);
+        new(id, name, stats, stats.MaxHp, position, HunterStatus.Active, hand ?? Array.Empty<string>(), equipment ?? Equipment.None, level, Xp: 0, Array.Empty<StatusEffect>());
 
     public bool IsActive => Status == HunterStatus.Active;
 
@@ -39,4 +40,17 @@ public sealed record Hunter(
         hand.Remove(cardId);
         return this with { Hand = hand };
     }
+
+    public bool HasStatus(StatusKind kind) => Statuses.Any(s => s.Kind == kind);
+
+    /// <summary>Aplica ou renova um estado (fica a maior duração).</summary>
+    public Hunter WithStatus(StatusKind kind, int turns)
+    {
+        var others = Statuses.Where(s => s.Kind != kind).ToList();
+        var current = Statuses.FirstOrDefault(s => s.Kind == kind);
+        others.Add(new StatusEffect(kind, Math.Max(turns, current?.TurnsLeft ?? 0)));
+        return this with { Statuses = others };
+    }
+
+    public Hunter WithoutStatus(StatusKind kind) => this with { Statuses = Statuses.Where(s => s.Kind != kind).ToList() };
 }

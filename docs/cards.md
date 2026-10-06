@@ -2,7 +2,7 @@
 
 Gerado por `tools/gen-cards-doc.py` a partir de `data/cards.json`. Não edite à mão.
 
-Total: 29 cartas.
+Total: 55 cartas.
 
 ## Armas (10)
 
@@ -44,6 +44,47 @@ Total: 29 cartas.
 | `charm_fox` | Amuleto da Raposa | incomum | 1 | 45 | +1 VEL, +1 SOR | — |
 | `cloak_shadow` | Manto das Sombras | rara | 1 | 80 | +2 VEL | — |
 | `crown_hunter` | Coroa do Caçador | rara | 1 | 100 | +1 ATQ, +1 DEF, +1 SOR | — |
+
+## Consumíveis (12)
+
+| Id | Nome | Raridade | Custo (PA) | Venda | Modificadores | Efeito |
+| --- | --- | --- | --- | --- | --- | --- |
+| `bread` | Pão | comum | 1 | 5 | — | `heal` (amount=4) |
+| `potion` | Poção | comum | 1 | 15 | — | `heal` (amount=8) |
+| `potion_large` | Poção Grande | incomum | 1 | 35 | — | `heal` (amount=15) |
+| `elixir` | Elixir | rara | 1 | 80 | — | `heal` (amount=99) |
+| `antidote` | Antídoto | comum | 1 | 10 | — | `cure_poison` |
+| `bomb` | Bomba | incomum | 1 | 30 | — | `bomb` (damage=3, range=3) |
+| `bomb_large` | Bomba Grande | rara | 1 | 70 | — | `bomb` (damage=5, range=3) |
+| `adrenaline` | Adrenalina | incomum | 1 | 30 | — | `gain_ap` (amount=2) |
+| `adrenaline_strong` | Adrenalina Forte | rara | 1 | 70 | — | `gain_ap` (amount=4) |
+| `rock` | Pedra | comum | 1 | 5 | — | `throw` (damage=2, range=3) |
+| `throwing_knife` | Faca de Arremesso | incomum | 1 | 25 | — | `throw` (damage=4, range=3) |
+| `oil_flask` | Frasco de Óleo | comum | 1 | 15 | — | `throw` (damage=3, range=2) |
+
+## Armadilhas (6)
+
+| Id | Nome | Raridade | Custo (PA) | Venda | Modificadores | Efeito |
+| --- | --- | --- | --- | --- | --- | --- |
+| `trap_pit` | Fosso | comum | 2 | 15 | — | `trap` (damage=4) |
+| `trap_pit_deep` | Fosso Profundo | rara | 2 | 60 | — | `trap` (damage=7) |
+| `trap_net` | Rede | incomum | 2 | 25 | — | `trap` (net=1) |
+| `trap_alarm` | Alarme | comum | 2 | 10 | — | `trap` (alarm=3) |
+| `trap_spikes` | Espinhos Venenosos | incomum | 2 | 30 | — | `trap` (damage=2, poison=1) |
+| `trap_bear` | Mandíbula de Ferro | rara | 2 | 65 | — | `trap` (damage=5, net=1) |
+
+## Ataques especiais (8)
+
+| Id | Nome | Raridade | Custo (PA) | Venda | Modificadores | Efeito |
+| --- | --- | --- | --- | --- | --- | --- |
+| `double_strike` | Golpe Duplo | incomum | 2 | 40 | — | `double_strike` |
+| `charge` | Investida | incomum | 2 | 35 | — | `charge` (range=3, bonus_atk=2) |
+| `trip` | Rasteira | comum | 2 | 20 | — | `trip` (cards=2) |
+| `trip_brutal` | Rasteira Brutal | rara | 2 | 60 | — | `trip` (cards=4) |
+| `power_strike` | Golpe Poderoso | comum | 2 | 20 | — | `strike` (bonus_atk=4) |
+| `precise_strike` | Golpe Preciso | incomum | 2 | 35 | — | `strike` (bonus_atk=1, no_dodge=1) |
+| `whirlwind` | Redemoinho | rara | 2 | 70 | — | `whirlwind` |
+| `life_steal` | Drenar | incomum | 2 | 40 | — | `life_steal` |
 
 ## Tesouros (3)
 
