@@ -95,7 +95,7 @@ Entrega o esqueleto de uma partida: estado imutável, reducer, dado com seed, po
 
 **Gate da fatia 1**
 
-- [ ] `dotnet test core.tests` verde no CI
+- [x] `dotnet test core.tests` verde no CI
 
 ## Fatia 2 — Mapa e baús
 
