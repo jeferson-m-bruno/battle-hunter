@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-# Roda N partidas IA×IA sem renderização e imprime estatísticas.
-# Uso: ./tools/simulate.sh [N] (padrão 1000)
-# O simulador real chega na fatia 4; por enquanto este script é um stub.
+# Roda N partidas IA×IA sem renderização e imprime estatísticas de balanceamento.
+# Uso: ./tools/simulate.sh [N] [--seed S] [--mission easy|normal|hard]   (padrão: 1000 partidas, missão fácil)
+# Sai com 0 quando a meta do GDD é atingida (nenhum perfil > 35% de vitórias, média de 18 a 25 rodadas).
 set -euo pipefail
 
-N="${1:-1000}"
-echo "simulate.sh: não implementado (fatia 4). Pedido: $N partidas."
-exit 1
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+dotnet run -c Release --project "$ROOT/simulator" -- "$@"

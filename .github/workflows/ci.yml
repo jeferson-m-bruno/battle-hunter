@@ -30,3 +30,6 @@ jobs:
 
       - name: Build do servidor
         run: dotnet build server -c Release --nologo
+
+      - name: Simulação de fumaça (200 partidas IA×IA)
+        run: dotnet run -c Release --project simulator -- 200 || test $? -eq 2

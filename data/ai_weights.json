@@ -1,0 +1,29 @@
+{
+  "base": {
+    "treasure_to_exit": 100,
+    "hunt_marked": 80,
+    "heal": 70,
+    "cure": 65,
+    "flee": 60,
+    "open_chest": 50,
+    "attack_monster": 40,
+    "equip": 35,
+    "avoid_boss": 30,
+    "explore": 10
+  },
+  "profiles": {
+    "balanced": {},
+    "aggressive": { "hunt_marked": 30, "attack_monster": 30 },
+    "cautious": { "flee": 30, "heal": 30, "cure": 30 },
+    "greedy": { "open_chest": 30 }
+  },
+  "thresholds": {
+    "hunt_marked_max_steps": 3,
+    "hunt_marked_min_hp_percent": 50,
+    "heal_below_hp_percent": 30,
+    "flee_at_or_below_hp_percent": 40,
+    "chest_max_steps": 4,
+    "boss_min_hp_percent": 60,
+    "avoid_boss_within_steps": 3
+  }
+}
