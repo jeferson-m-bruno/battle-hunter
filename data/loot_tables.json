@@ -7,5 +7,38 @@
       { "rarity": "uncommon", "weight": 30, "perLuck": 2 },
       { "rarity": "rare",     "weight": 10, "perLuck": 3 }
     ]
+  },
+  {
+    "id": "monster_common",
+    "types": ["weapon", "armor", "accessory", "consumable", "trap", "special_attack"],
+    "rarities": [
+      { "rarity": "common",   "weight": 70, "perLuck": 0 },
+      { "rarity": "uncommon", "weight": 25, "perLuck": 2 },
+      { "rarity": "rare",     "weight": 5,  "perLuck": 2 }
+    ]
+  },
+  {
+    "id": "monster_uncommon",
+    "types": ["weapon", "armor", "accessory", "consumable", "trap", "special_attack"],
+    "rarities": [
+      { "rarity": "common",   "weight": 50, "perLuck": 0 },
+      { "rarity": "uncommon", "weight": 35, "perLuck": 2 },
+      { "rarity": "rare",     "weight": 15, "perLuck": 3 }
+    ]
+  },
+  {
+    "id": "monster_rare",
+    "types": ["weapon", "armor", "accessory", "consumable", "trap", "special_attack"],
+    "rarities": [
+      { "rarity": "uncommon", "weight": 50, "perLuck": 0 },
+      { "rarity": "rare",     "weight": 50, "perLuck": 5 }
+    ]
+  },
+  {
+    "id": "boss",
+    "types": ["weapon", "armor", "accessory", "consumable", "trap", "special_attack"],
+    "rarities": [
+      { "rarity": "rare", "weight": 100, "perLuck": 0 }
+    ]
   }
 ]

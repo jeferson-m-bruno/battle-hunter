@@ -21,12 +21,13 @@ public static class Reducer
         {
             StartGame start => TurnRules.Start(state, start, random),
             RollDice roll => TurnRules.Roll(state, roll, random, content),
-            Pass pass => TurnRules.Pass(state, pass),
-            MoveTo move => MovementRules.Move(state, move),
-            Exit exit => EndConditions.Exit(state, exit),
+            Pass pass => TurnRules.Pass(state, pass, random, content),
+            MoveTo move => MovementRules.Move(state, move, random, content),
+            Exit exit => EndConditions.Exit(state, exit, random, content),
             OpenChest open => ChestRules.Open(state, open, random, content),
             Discard discard => HandRules.Discard(state, discard),
-            Equip equip => HandRules.Equip(state, equip, content),
+            Equip equip => HandRules.Equip(state, equip, random, content),
+            Attack attack => CombatRules.Attack(state, attack, random, content),
             _ => Reject(state, action, $"Ação desconhecida: {action.GetType().Name}."),
         };
     }

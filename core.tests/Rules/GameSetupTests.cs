@@ -18,8 +18,9 @@ public class GameSetupTests
     public void Given_GeneratedMap_When_Created_Then_HuntersStandOnSpawnsAndChestsMatchMap()
     {
         var map = Map(42);
+        var random = new SeededRandom(42);
 
-        var state = GameSetup.Create(new GameConfig(), map, FourHunters(), "treasure_kobold_fang");
+        var state = GameSetup.Create(new GameConfig(MimicChancePercent: 0), map, FourHunters(), "treasure_kobold_fang", random, TestContent.Default);
 
         Assert.Equal(map.HunterSpawns, state.Hunters.Select(h => h.Position));
         Assert.Equal(map.Chests.Count, state.Chests.Count);
@@ -32,8 +33,9 @@ public class GameSetupTests
     public void Given_TwoHunters_When_Created_Then_UsesFirstTwoSpawns()
     {
         var map = Map(7);
+        var random = new SeededRandom(7);
 
-        var state = GameSetup.Create(new GameConfig(), map, FourHunters().Take(2).ToList(), "treasure_kobold_fang");
+        var state = GameSetup.Create(new GameConfig(), map, FourHunters().Take(2).ToList(), "treasure_kobold_fang", random, TestContent.Default);
 
         Assert.Equal(2, state.Hunters.Count);
         Assert.Equal(map.HunterSpawns.Take(2), state.Hunters.Select(h => h.Position));
@@ -45,7 +47,7 @@ public class GameSetupTests
         var hunters = FourHunters();
         hunters[0] = hunters[0] with { Hand = Enumerable.Repeat("dagger", 6).ToList() };
 
-        Assert.Throws<ArgumentException>(() => GameSetup.Create(new GameConfig(), Map(1), hunters, "treasure_kobold_fang"));
+        Assert.Throws<ArgumentException>(() => GameSetup.Create(new GameConfig(), Map(1), hunters, "treasure_kobold_fang", new SeededRandom(1), TestContent.Default));
     }
 
     [Fact]
@@ -54,7 +56,8 @@ public class GameSetupTests
         // Partida completa sobre um mapa gerado: o caçador 1 anda até o baú-alvo, abre, anda até a saída e sai.
         var random = new SeededRandom(2026);
         var map = Map(2026);
-        var state = GameSetup.Create(new GameConfig(MaxRounds: 200), map, FourHunters().Take(1).ToList(), "treasure_lost_crown");
+        var state = GameSetup.Create(new GameConfig(MaxRounds: 200, MimicChancePercent: 0, MonsterSpawnInterval: 0), map, FourHunters().Take(1).ToList(), "treasure_lost_crown", random, TestContent.Default)
+            .WithMonsters();
         state = state.Apply(new StartGame(), random).State;
 
         state = WalkTo(state, map.TargetChest, random, stopAdjacent: true);

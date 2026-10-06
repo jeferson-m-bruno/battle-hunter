@@ -28,7 +28,7 @@ internal static class HandRules
         return new ReducerResult(next, new GameEvent[] { new CardDiscarded(hunter.Id, action.CardId) });
     }
 
-    public static ReducerResult Equip(GameState state, State.Actions.Equip action, GameContent content)
+    public static ReducerResult Equip(GameState state, State.Actions.Equip action, IRandom random, GameContent content)
     {
         var error = Reducer.CheckTurn(state, action, GamePhase.Acting);
         if (error != null)
@@ -62,7 +62,7 @@ internal static class HandRules
         };
 
         if (pointsLeft == 0)
-            next = TurnRules.EndTurn(next, events);
+            next = TurnRules.EndTurn(next, random, content, events);
 
         return new ReducerResult(next, events);
     }

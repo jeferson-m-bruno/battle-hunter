@@ -12,7 +12,9 @@ public sealed record Hunter(
     Position Position,
     HunterStatus Status,
     IReadOnlyList<string> Hand,
-    Equipment Equipment)
+    Equipment Equipment,
+    int Level,
+    int Xp)
 {
     public static Hunter Create(
         int id,
@@ -20,8 +22,9 @@ public sealed record Hunter(
         HunterStats stats,
         Position position,
         IReadOnlyList<string>? hand = null,
-        Equipment? equipment = null) =>
-        new(id, name, stats, stats.MaxHp, position, HunterStatus.Active, hand ?? Array.Empty<string>(), equipment ?? Equipment.None);
+        Equipment? equipment = null,
+        int level = 1) =>
+        new(id, name, stats, stats.MaxHp, position, HunterStatus.Active, hand ?? Array.Empty<string>(), equipment ?? Equipment.None, level, Xp: 0);
 
     public bool IsActive => Status == HunterStatus.Active;
 

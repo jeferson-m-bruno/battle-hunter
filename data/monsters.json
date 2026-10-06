@@ -1,1 +1,8 @@
-[]
+[
+  { "id": "kobold",   "name": "Kobold",                  "hp": 8,  "atk": 3,  "def": 1, "xp": 10,  "loot": "monster_common",   "behavior": "chase_nearest", "poison": false, "spawns": true },
+  { "id": "skeleton", "name": "Esqueleto",               "hp": 12, "atk": 4,  "def": 2, "xp": 15,  "loot": "monster_common",   "behavior": "guard_room",    "poison": false, "spawns": true },
+  { "id": "spider",   "name": "Aranha",                  "hp": 10, "atk": 3,  "def": 1, "xp": 15,  "loot": "monster_common",   "behavior": "chase_nearest", "poison": true,  "spawns": true },
+  { "id": "orc",      "name": "Orc",                     "hp": 18, "atk": 6,  "def": 3, "xp": 25,  "loot": "monster_uncommon", "behavior": "chase_wounded", "poison": false, "spawns": true },
+  { "id": "mimic",    "name": "Mímico",                  "hp": 15, "atk": 5,  "def": 4, "xp": 30,  "loot": "monster_rare",     "behavior": "mimic",         "poison": false, "spawns": false },
+  { "id": "dragon",   "name": "Dragão Vermelho (chefe)", "hp": 60, "atk": 10, "def": 6, "xp": 150, "loot": "boss",             "behavior": "boss",          "poison": false, "spawns": false }
+]

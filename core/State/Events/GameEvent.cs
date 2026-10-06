@@ -32,5 +32,28 @@ public sealed record CardEquipped(int HunterId, string CardId, EquipmentSlot Slo
 /// <summary>O caçador passou a carregar o tesouro-alvo; visível a todos.</summary>
 public sealed record HunterMarked(int HunterId) : GameEvent;
 
+/// <summary>Resultado de um ataque: os dados rolados, para o cliente animar; o dano já aplicado.</summary>
+public sealed record AttackResolved(
+    Combatant Attacker,
+    Combatant Target,
+    int AttackerDie,
+    int DefenderDie,
+    int Damage,
+    bool Critical,
+    bool Dodged,
+    int TargetHpLeft) : GameEvent;
+
+public sealed record MonsterSpawned(int MonsterId, string TypeId, Position Position) : GameEvent;
+
+public sealed record MonsterMoved(int MonsterId, Position From, Position To) : GameEvent;
+
+public sealed record MonsterDefeated(int MonsterId, string TypeId, int KillerHunterId, int XpGained) : GameEvent;
+
+/// <summary>O caçador caiu (0 PV): sai da partida e a mão inteira fica no chão da célula.</summary>
+public sealed record HunterFell(int HunterId, Combatant KilledBy, Position Position, IReadOnlyList<string> DroppedCards) : GameEvent;
+
+/// <summary>Fase dos monstros encerrada (fim da rodada).</summary>
+public sealed record MonsterPhaseEnded(int Round) : GameEvent;
+
 /// <summary>A ação foi recusada; o estado não mudou.</summary>
 public sealed record ActionRejected(GameAction Action, string Reason) : GameEvent;

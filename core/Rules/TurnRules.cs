@@ -50,49 +50,50 @@ internal static class TurnRules
         });
     }
 
-    public static ReducerResult Pass(GameState state, State.Actions.Pass action)
+    public static ReducerResult Pass(GameState state, State.Actions.Pass action, IRandom random, GameContent content)
     {
         var error = Reducer.CheckTurn(state, action, GamePhase.Acting);
         if (error != null)
             return Reducer.Reject(state, action, error);
 
         var events = new List<GameEvent>();
-        var next = EndTurn(state, events);
+        var next = EndTurn(state, random, content, events);
         return new ReducerResult(next, events);
     }
 
     /// <summary>
     /// Encerra o turno atual e abre o próximo, pulando caçadores que saíram ou caíram.
-    /// Ao dar a volta na ordem, avança a rodada. Verifica as condições de fim.
+    /// Ao dar a volta na ordem: fase dos monstros, nova rodada, spawn periódico. Verifica as condições de fim.
     /// </summary>
-    public static GameState EndTurn(GameState state, List<GameEvent> events)
+    public static GameState EndTurn(GameState state, IRandom random, GameContent content, List<GameEvent> events)
     {
         events.Add(new TurnEnded(state.CurrentHunterId));
 
-        var endReason = EndConditions.CheckAfterTurn(state);
-        if (endReason != null)
-            return Finish(state, endReason.Value, winnerId: null, events);
+        if (!AnyHunterActive(state))
+            return Finish(state, GameEndReason.AllHuntersOut, winnerId: null, events);
 
-        var index = state.TurnIndex;
+        var index = NextActiveIndex(state, state.TurnIndex);
         var round = state.Round;
-        var count = state.TurnOrder.Count;
 
-        // Há ao menos um caçador ativo (CheckAfterTurn garantiu), então o laço termina.
-        do
+        if (index == null)
         {
-            index++;
-            if (index >= count)
-            {
-                index = 0;
-                round++;
-                if (round > state.Config.MaxRounds)
-                    return Finish(state, GameEndReason.RoundLimit, winnerId: null, events);
-            }
-        } while (!state.Hunter(state.TurnOrder[index]).IsActive);
+            // Todos os caçadores desta rodada já agiram: vez dos monstros, depois a rodada vira.
+            state = MonsterRules.Phase(state, random, content, events);
+            if (!AnyHunterActive(state))
+                return Finish(state, GameEndReason.AllHuntersOut, winnerId: null, events);
+
+            round++;
+            if (round > state.Config.MaxRounds)
+                return Finish(state, GameEndReason.RoundLimit, winnerId: null, events);
+
+            state = state with { Round = round };
+            state = MonsterRules.SpawnIfDue(state, random, content, events);
+            index = NextActiveIndex(state, -1);
+        }
 
         var next = state with
         {
-            TurnIndex = index,
+            TurnIndex = index!.Value,
             Round = round,
             ActionPoints = 0,
             Phase = GamePhase.AwaitingRoll,
@@ -105,5 +106,19 @@ internal static class TurnRules
     {
         events.Add(new GameEnded(reason, winnerId));
         return state with { ActionPoints = 0, Phase = GamePhase.Finished, EndReason = reason, WinnerId = winnerId };
+    }
+
+    private static bool AnyHunterActive(GameState state) => state.Hunters.Any(h => h.IsActive);
+
+    /// <summary>Próximo índice da ordem de turno com caçador ativo, depois de <paramref name="after"/>; null se a rodada acabou.</summary>
+    private static int? NextActiveIndex(GameState state, int after)
+    {
+        for (var i = after + 1; i < state.TurnOrder.Count; i++)
+        {
+            if (state.Hunter(state.TurnOrder[i]).IsActive)
+                return i;
+        }
+
+        return null;
     }
 }

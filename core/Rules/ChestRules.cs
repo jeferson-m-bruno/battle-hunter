@@ -31,31 +31,51 @@ internal static class ChestRules
         if (chest.IsOpened)
             return Reducer.Reject(state, action, "O baú já foi aberto.");
 
-        if (hunter.Hand.Count >= GameState.MaxHandSize)
+        if (!chest.IsMimic && hunter.Hand.Count >= GameState.MaxHandSize)
             return Reducer.Reject(state, action, "Mão cheia: descarte uma carta antes.");
 
-        var card = chest.HoldsTargetTreasure
-            ? content.Cards.Get(state.TargetTreasureCardId!)
-            : LootRoller.Roll(content.LootTable(GameContent.ChestLootTableId), content.Cards, StatRules.Effective(hunter, content).Luck, random);
-
         var pointsLeft = state.ActionPoints - OpenCost;
-        var next = state
-            .WithChest(chest with { IsOpened = true })
-            .WithHunter(hunter.WithCardAdded(card.Id))
-            with { ActionPoints = pointsLeft };
+        var next = state.WithChest(chest with { IsOpened = true }) with { ActionPoints = pointsLeft };
+        var events = new List<GameEvent> { new ChestOpened(hunter.Id, chest.Position, pointsLeft) };
 
-        var events = new List<GameEvent>
+        if (chest.IsMimic)
         {
-            new ChestOpened(hunter.Id, chest.Position, pointsLeft),
-            new CardDrawn(hunter.Id, card.Id),
-        };
+            // O "baú" era um Mímico: vira monstro na célula e ataca quem abriu na hora.
+            next = MonsterRules.Spawn(next, content.Monsters.Get(MonsterCatalog.MimicId), chest.Position, events);
+            var mimicId = next.NextMonsterId - 1;
+            next = CombatRules.ResolveAttack(next, Combatant.MonsterRef(mimicId), Combatant.HunterRef(hunter.Id), random, content, events);
+        }
+        else
+        {
+            var card = chest.HoldsTargetTreasure
+                ? content.Cards.Get(state.TargetTreasureCardId!)
+                : LootRoller.Roll(content.LootTable(GameContent.ChestLootTableId), content.Cards, StatRules.Effective(hunter, content).Luck, random);
 
-        if (chest.HoldsTargetTreasure)
-            events.Add(new HunterMarked(hunter.Id));
+            next = GiveCard(next, hunter.Id, card.Id, events);
+        }
 
-        if (pointsLeft == 0)
-            next = TurnRules.EndTurn(next, events);
+        if (next.Phase == GamePhase.Finished)
+            return new ReducerResult(next, events);
+
+        if (pointsLeft == 0 || !next.Hunter(hunter.Id).IsActive)
+            next = TurnRules.EndTurn(next, random, content, events);
 
         return new ReducerResult(next, events);
+    }
+
+    /// <summary>Entrega uma carta: na mão se há espaço, senão no chão da célula do caçador.</summary>
+    public static GameState GiveCard(GameState state, int hunterId, string cardId, List<GameEvent> events)
+    {
+        var hunter = state.Hunter(hunterId);
+        events.Add(new CardDrawn(hunterId, cardId));
+
+        if (hunter.Hand.Count >= GameState.MaxHandSize)
+            return state.WithGroundCards(new[] { new GroundCard(hunter.Position, cardId) });
+
+        state = state.WithHunter(hunter.WithCardAdded(cardId));
+        if (cardId == state.TargetTreasureCardId)
+            events.Add(new HunterMarked(hunterId));
+
+        return state;
     }
 }

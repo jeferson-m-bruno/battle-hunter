@@ -1,16 +1,17 @@
 using System.Collections.Generic;
+using BattleHunter.Core.Cards;
 using BattleHunter.Core.State;
 using BattleHunter.Core.State.Actions;
 using BattleHunter.Core.State.Events;
 
 namespace BattleHunter.Core.Rules;
 
-/// <summary>Movimento: 1 célula ortogonal por 1 PA. Paredes e outros caçadores bloqueiam.</summary>
+/// <summary>Movimento: 1 célula ortogonal por 1 PA. Paredes, baús e outras criaturas bloqueiam.</summary>
 internal static class MovementRules
 {
     public const int MoveCost = 1;
 
-    public static ReducerResult Move(GameState state, MoveTo action)
+    public static ReducerResult Move(GameState state, MoveTo action, IRandom random, GameContent content)
     {
         var error = Reducer.CheckTurn(state, action, GamePhase.Acting);
         if (error != null)
@@ -28,7 +29,7 @@ internal static class MovementRules
             return Reducer.Reject(state, action, "Célula bloqueada ou fora do mapa.");
 
         if (state.IsOccupied(action.Target))
-            return Reducer.Reject(state, action, "Célula ocupada por outro caçador.");
+            return Reducer.Reject(state, action, "Célula ocupada por outra criatura.");
 
         var pointsLeft = state.ActionPoints - MoveCost;
         var next = state
@@ -41,7 +42,7 @@ internal static class MovementRules
         };
 
         if (pointsLeft == 0)
-            next = TurnRules.EndTurn(next, events);
+            next = TurnRules.EndTurn(next, random, content, events);
 
         return new ReducerResult(next, events);
     }

@@ -41,7 +41,7 @@ public class GameStateSerializationTests
         var random = new SeededRandom(5);
         var generated = MapGenerator.Generate(new MapSpec(), random);
         var hunters = Enumerable.Range(1, 4).Select(i => new HunterSetup(i, $"H{i}", HunterStats.Base)).ToList();
-        var state = GameSetup.Create(new GameConfig(), generated, hunters, "treasure_dragon_eye");
+        var state = GameSetup.Create(new GameConfig(), generated, hunters, "treasure_dragon_eye", random, TestContent.Default);
         state = state.Apply(new StartGame(), random).State;
 
         var json = JsonSerializer.Serialize(state, Options);
