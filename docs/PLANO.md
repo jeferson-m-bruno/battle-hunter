@@ -57,41 +57,41 @@ Entrega o esqueleto de uma partida: estado imutável, reducer, dado com seed, po
 
 **Estado e reducer**
 
-- [ ] Definir `GameState` imutável e serializável: rodada, ordem de turno, caçadores, grid, PA do turno atual
-- [ ] Definir `Hunter` com os 5 atributos (PV 20, ATQ 4, DEF 2, VEL 0, SOR 1 na base) e posição
-- [ ] Definir as ações (intenções) como tipos: `RollDice`, `MoveTo`, `Pass`, `Exit`
-- [ ] Definir os eventos como tipos: `DiceRolled`, `HunterMoved`, `TurnEnded`, `HunterExited`, `GameEnded`
-- [ ] Implementar `Reducer.Apply(state, action, random) -> (state, events)` como função pura
-- [ ] Rejeitar ações inválidas (fora do turno, PA insuficiente, célula bloqueada) com evento de erro, sem mudar o estado
+- [x] Definir `GameState` imutável e serializável: rodada, ordem de turno, caçadores, grid, PA do turno atual
+- [x] Definir `Hunter` com os 5 atributos (PV 20, ATQ 4, DEF 2, VEL 0, SOR 1 na base) e posição
+- [x] Definir as ações (intenções) como tipos: `RollDice`, `MoveTo`, `Pass`, `Exit`
+- [x] Definir os eventos como tipos: `DiceRolled`, `HunterMoved`, `TurnEnded`, `HunterExited`, `GameEnded`
+- [x] Implementar `Reducer.Apply(state, action, random) -> (state, events)` como função pura
+- [x] Rejeitar ações inválidas (fora do turno, PA insuficiente, célula bloqueada) com evento de erro, sem mudar o estado
 
 **Aleatoriedade**
 
-- [ ] Criar a interface `IRandom` com `NextD6()`
-- [ ] Implementar `SeededRandom` determinístico por seed
-- [ ] Garantir que nada no core use `System.Random` diretamente
+- [x] Criar a interface `IRandom` com `NextD6()`
+- [x] Implementar `SeededRandom` determinístico por seed
+- [x] Garantir que nada no core use `System.Random` diretamente
 
 **Turno**
 
-- [ ] Rolar 1d6 + VEL no início do turno e creditar como PA
-- [ ] Mover 1 célula ortogonal por 1 PA; paredes bloqueiam
-- [ ] Passar o turno descartando o PA restante
-- [ ] Sair pela célula de saída por 1 PA, encerrando a participação do caçador
-- [ ] Ordem de turno sorteada no setup e fixa durante a partida
-- [ ] Contar rodadas; encerrar a partida no limite configurado (30 por padrão)
+- [x] Rolar 1d6 + VEL no início do turno e creditar como PA
+- [x] Mover 1 célula ortogonal por 1 PA; paredes bloqueiam
+- [x] Passar o turno descartando o PA restante
+- [x] Sair pela célula de saída por 1 PA, encerrando a participação do caçador
+- [x] Ordem de turno sorteada no setup e fixa durante a partida
+- [x] Contar rodadas; encerrar a partida no limite configurado (30 por padrão)
 
 **Fim de partida (parcial)**
 
-- [ ] Encerrar quando todos os caçadores saíram ou caíram
-- [ ] Encerrar no limite de rodadas como missão falha para todos
+- [x] Encerrar quando todos os caçadores saíram ou caíram
+- [x] Encerrar no limite de rodadas como missão falha para todos
 
 **Testes (core.tests)**
 
-- [ ] Dada uma seed, dois reducers produzem estados idênticos (determinismo)
-- [ ] Mover além do PA disponível é rejeitado
-- [ ] Mover para parede é rejeitado
-- [ ] Passar o turno zera o PA e avança para o próximo caçador
-- [ ] Partida termina na rodada 30
-- [ ] GameState serializa e desserializa sem perda (JSON)
+- [x] Dada uma seed, dois reducers produzem estados idênticos (determinismo)
+- [x] Mover além do PA disponível é rejeitado
+- [x] Mover para parede é rejeitado
+- [x] Passar o turno zera o PA e avança para o próximo caçador
+- [x] Partida termina na rodada 30
+- [x] GameState serializa e desserializa sem perda (JSON)
 
 **Gate da fatia 1**
 

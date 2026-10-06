@@ -47,6 +47,14 @@ PA não gasto é perdido.
 
 Mão cheia (10 cartas) obriga descarte antes de pegar outra.
 
+**Esclarecimentos de implementação (fatia 1)**
+
+- Rolar o dado é uma ação explícita do jogador (`RollDice`), como no PS1; o turno nasce na fase "aguardando rolagem".
+- Ao zerar o PA, o turno encerra automaticamente; `Pass` encerra com PA sobrando.
+- Uma célula ocupada por outro caçador ativo bloqueia movimento (dois caçadores nunca dividem a célula).
+- O limite de rodadas encerra a partida ao fim da última rodada (rodada 30 completa).
+- A aleatoriedade usa um PRNG próprio (xorshift32): `System.Random` muda de algoritmo entre .NET 8 e Mono/Unity, o que quebraria o replay cliente↔servidor.
+
 **Turno dos monstros**
 
 Após os 4 caçadores, cada monstro vivo rola 1d6 de movimento e persegue o caçador mais próximo em linha de visão; se adjacente, ataca em vez de mover.
