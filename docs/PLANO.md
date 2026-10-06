@@ -226,48 +226,48 @@ Caçadores e monstros controlados por IA sobre a mesma API de ações de um joga
 
 **Pathfinding (core/Map)**
 
-- [ ] A* no grid com custo 1 por célula; paredes bloqueiam
-- [ ] Linha de visão entre duas células
-- [ ] Distância em passos entre células (reusa o BFS da fatia 2)
+- [x] A* no grid com custo 1 por célula; paredes bloqueiam
+- [x] Linha de visão entre duas células
+- [x] Distância em passos entre células (reusa o BFS da fatia 2)
 
 **Monstros: FSM (core/Ai)**
 
-- [ ] Três estados: Ocioso, Perseguindo, Atacando
-- [ ] Transição por distância e linha de visão
-- [ ] Kobold persegue o mais próximo; Orc persegue o mais ferido
-- [ ] Esqueleto nunca sai da sala; ataca quem entra
-- [ ] Substituir o movimento simples da fatia 3 pela FSM
+- [x] Três estados: Ocioso, Perseguindo, Atacando
+- [x] Transição por distância e linha de visão
+- [x] Kobold persegue o mais próximo; Orc persegue o mais ferido
+- [x] Esqueleto nunca sai da sala; ataca quem entra
+- [x] Substituir o movimento simples da fatia 3 pela FSM
 
 **Caçadores: utilidade por ação (core/Ai)**
 
-- [ ] Listar ações possíveis com o PA atual, pontuar cada uma, executar a melhor, repetir até zerar PA
-- [ ] A IA só vê o que um jogador veria: nunca a mão oculta dos outros nem células em névoa
-- [ ] Pesos iniciais do GDD: tesouro na mão → saída (100); portador a ≤ 3 passos e PV > 50% → perseguir (80); PV < 30% com Poção → usar (70); monstro adjacente e PV ≤ 40% → afastar (60); baú a ≤ 4 passos → abrir (50); monstro adjacente e PV > 40% → atacar (40); chefe presente e tesouro com outro → evitar sala da saída (30); explorar névoa (10)
-- [ ] Pesos em `data/ai_weights.json`, não em código
-- [ ] Três perfis: Agressivo (+30 perseguir/atacar), Cauteloso (+30 fugir/curar), Ganancioso (+30 baús)
-- [ ] Avaliação de enfrentar o chefe ou correr para a saída
+- [x] Listar ações possíveis com o PA atual, pontuar cada uma, executar a melhor, repetir até zerar PA
+- [x] A IA só vê o que um jogador veria: nunca a mão oculta dos outros nem células em névoa
+- [x] Pesos iniciais do GDD: tesouro na mão → saída (100); portador a ≤ 3 passos e PV > 50% → perseguir (80); PV < 30% com Poção → usar (70); monstro adjacente e PV ≤ 40% → afastar (60); baú a ≤ 4 passos → abrir (50); monstro adjacente e PV > 40% → atacar (40); chefe presente e tesouro com outro → evitar sala da saída (30); explorar névoa (10)
+- [x] Pesos em `data/ai_weights.json`, não em código
+- [x] Três perfis: Agressivo (+30 perseguir/atacar), Cauteloso (+30 fugir/curar), Ganancioso (+30 baús)
+- [x] Avaliação de enfrentar o chefe ou correr para a saída
 
 **Simulador (tools/simulate.sh)**
 
-- [ ] Projeto console `BattleHunter.Simulator` que roda N partidas IA×IA sem renderização
-- [ ] Imprimir taxa de vitória por perfil, duração média em rodadas, quedas, partidas por tempo
-- [ ] `tools/simulate.sh 1000` chama o simulador com seed inicial configurável
-- [ ] Rodar 1.000 partidas em menos de 1 minuto (meta de performance para o CI)
+- [x] Projeto console `BattleHunter.Simulator` que roda N partidas IA×IA sem renderização
+- [x] Imprimir taxa de vitória por perfil, duração média em rodadas, quedas, partidas por tempo
+- [x] `tools/simulate.sh 1000` chama o simulador com seed inicial configurável
+- [x] Rodar 1.000 partidas em menos de 1 minuto (meta de performance para o CI)
 
 **Balanceamento**
 
-- [ ] Rodar 1.000 partidas e registrar o baseline em `docs/balance.md`
-- [ ] Ajustar pesos e números de `data/` até nenhum perfil passar de 35% de vitórias
-- [ ] Ajustar até a duração média ficar entre 18 e 25 rodadas
-- [ ] Registrar cada mudança de balanceamento com a simulação antes e depois
+- [x] Rodar 1.000 partidas e registrar o baseline em `docs/balance.md`
+- [x] Ajustar pesos e números de `data/` até nenhum perfil passar de 35% de vitórias
+- [x] Ajustar até a duração média ficar entre 18 e 25 rodadas
+- [x] Registrar cada mudança de balanceamento com a simulação antes e depois
 
 **Testes**
 
-- [ ] A* encontra o caminho mais curto num mapa conhecido
-- [ ] IA com tesouro na mão sempre escolhe ir para a saída
-- [ ] IA nunca age sobre uma célula em névoa
-- [ ] Esqueleto não sai da sala em 100 turnos simulados
-- [ ] Simulação de 200 partidas termina sem exceção (teste de fumaça no CI)
+- [x] A* encontra o caminho mais curto num mapa conhecido
+- [x] IA com tesouro na mão sempre escolhe ir para a saída
+- [x] IA nunca age sobre uma célula em névoa
+- [x] Esqueleto não sai da sala em 100 turnos simulados
+- [x] Simulação de 200 partidas termina sem exceção (teste de fumaça no CI)
 
 **Gate da fatia 4**
 

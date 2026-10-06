@@ -13,16 +13,25 @@
   },
   "profiles": {
     "balanced": {},
-    "aggressive": { "hunt_marked": 30, "attack_monster": 30 },
-    "cautious": { "flee": 30, "heal": 30, "cure": 30 },
-    "greedy": { "open_chest": 30 }
+    "aggressive": {
+      "hunt_marked": 30,
+      "attack_monster": 30
+    },
+    "cautious": {
+      "flee": 30,
+      "heal": 30,
+      "cure": 30
+    },
+    "greedy": {
+      "open_chest": 30
+    }
   },
   "thresholds": {
-    "hunt_marked_max_steps": 3,
-    "hunt_marked_min_hp_percent": 50,
+    "hunt_marked_max_steps": 6,
+    "hunt_marked_min_hp_percent": 40,
     "heal_below_hp_percent": 30,
     "flee_at_or_below_hp_percent": 40,
-    "chest_max_steps": 4,
+    "chest_max_steps": 5,
     "boss_min_hp_percent": 60,
     "avoid_boss_within_steps": 3
   }

@@ -292,6 +292,13 @@ Três perfis ajustam os pesos: Agressivo (+30 em perseguir e atacar), Cauteloso 
 - Simulação de 1.000 partidas só com IA, sem renderização, para medir taxa de vitória por perfil e duração média.
 - Meta de balanceamento: nenhum perfil acima de 35% de vitórias; duração média de 18 a 25 rodadas.
 
+**Esclarecimentos de implementação (fatia 4)**
+
+- O layout do mapa (paredes, baús, saída) é conhecido por todos desde o início; a névoa esconde criaturas, cartas no chão e os outros caçadores — o Marcado é sempre visível. A IA explora "névoa" = células que ainda não viu.
+- A simulação usa 4 perfis: os três do GDD mais Equilibrado (pesos base, sem bônus); cada caçador entra com 2 cartas comuns aleatórias.
+- Limiares da IA ficam em `data/ai_weights.json` junto dos pesos; o balanceamento registrado em `docs/balance.md` ajustou perseguição (≤ 6 passos, PV > 40%) e baús (≤ 5 passos).
+- Esqueleto: persegue só dentro da própria sala; Orc: o caçador com menor % de PV à vista; Mímico revelado persegue como o Kobold.
+
 ## Arquitetura técnica
 
 O núcleo de regras é uma biblioteca C# pura compilada tanto no cliente quanto no servidor; o cliente envia intenções, o servidor valida e devolve eventos, e o modo offline roda o mesmo núcleo localmente.
