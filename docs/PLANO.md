@@ -22,34 +22,34 @@ Antes de qualquer regra: o monorepo, o CLAUDE.md e o CI que compila o core fora 
 
 **Repositório e documentação**
 
-- [ ] Criar o repositório `battle-hunter/` com `git init` e `.gitignore` para .NET e Unity
-- [ ] Colar o CLAUDE.md do GDD na raiz
-- [ ] Exportar o GDD para `docs/GDD.md`
-- [ ] Criar `docs/cards.md` vazio (será gerado a partir do JSON na fatia 2)
+- [x] Criar o repositório `battle-hunter/` com `git init` e `.gitignore` para .NET e Unity
+- [x] Colar o CLAUDE.md do GDD na raiz
+- [x] Exportar o GDD para `docs/GDD.md`
+- [x] Criar `docs/cards.md` vazio (será gerado a partir do JSON na fatia 2)
 
 **Solução .NET**
 
-- [ ] Criar `core/` como BattleHunter.Core (.NET Standard 2.1, nullable habilitado, C# 10)
-- [ ] Criar `core.tests/` com xUnit referenciando o core
-- [ ] Criar `server/` como BattleHunter.Server (ASP.NET) referenciando o core, ainda vazio
-- [ ] Criar `BattleHunter.sln` agrupando os três projetos
-- [ ] Criar as pastas `Rules/`, `Cards/`, `Map/`, `Ai/`, `State/`, `Serialization/` no core com namespaces espelhando pastas
-- [ ] Adicionar um teste trivial que compila e passa, para validar a cadeia
+- [x] Criar `core/` como BattleHunter.Core (.NET Standard 2.1, nullable habilitado, C# 10)
+- [x] Criar `core.tests/` com xUnit referenciando o core
+- [x] Criar `server/` como BattleHunter.Server (ASP.NET) referenciando o core, ainda vazio
+- [x] Criar `BattleHunter.sln` agrupando os três projetos
+- [x] Criar as pastas `Rules/`, `Cards/`, `Map/`, `Ai/`, `State/`, `Serialization/` no core com namespaces espelhando pastas
+- [x] Adicionar um teste trivial que compila e passa, para validar a cadeia
 
 **Dados e ferramentas**
 
-- [ ] Criar `data/` com `cards.json`, `monsters.json`, `missions.json`, `loot_tables.json`, `levels.json` vazios (arrays)
-- [ ] Criar `tools/sync-data.sh` que copia `data/` para `client/Assets/_Project/Data`
-- [ ] Criar `tools/simulate.sh` como stub que imprime "não implementado" (vira real na fatia 4)
+- [x] Criar `data/` com `cards.json`, `monsters.json`, `missions.json`, `loot_tables.json`, `levels.json` vazios (arrays)
+- [x] Criar `tools/sync-data.sh` que copia `data/` para `client/Assets/_Project/Data`
+- [x] Criar `tools/simulate.sh` como stub que imprime "não implementado" (vira real na fatia 4)
 
 **CI**
 
-- [ ] Configurar CI (GitHub Actions) que roda `dotnet build core` e `dotnet test core.tests` a cada push
-- [ ] Adicionar verificação no CI que falha se `core/` referenciar `UnityEngine`
+- [x] Configurar CI (GitHub Actions) que roda `dotnet build core` e `dotnet test core.tests` a cada push
+- [x] Adicionar verificação no CI que falha se `core/` referenciar `UnityEngine`
 
 **Gate da fatia 0**
 
-- [ ] CI verde com o teste trivial, core compilando fora do Unity
+- [x] CI verde com o teste trivial, core compilando fora do Unity
 
 ## Fatia 1 — Núcleo de turno
 
