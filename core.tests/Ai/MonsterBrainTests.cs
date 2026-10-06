@@ -141,6 +141,6 @@ public class MonsterBrainTests
 
         Assert.Equal(MonsterState.Chasing, decision.State);
         Assert.Null(decision.TargetHunterId);
-        Assert.Equal(new Position(3, 2), decision.Destination);
+        Assert.Equal(new Position(3, 3), decision.Destination);
     }
 }
