@@ -150,7 +150,7 @@ O dungeon passa a ser gerado por seed e as cartas entram como dados em JSON. Ao 
 
 **Gate da fatia 2**
 
-- [ ] Teste de 1.000 mapas conexos verde no CI
+- [x] Teste de 1.000 mapas conexos verde no CI
 
 ## Fatia 3 — Combate e roubo
 
