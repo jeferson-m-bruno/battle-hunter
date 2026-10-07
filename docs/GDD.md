@@ -269,6 +269,18 @@ A guilda é o hub entre partidas: escolher missão, equipar, vender cartas e ver
 
 Pergunta aberta: monetização futura por skins apenas, ou também por slots extras de cartas levadas para a missão? A segunda afeta balanceamento e deve ser decidida antes do design de rank.
 
+**Esclarecimentos de implementação (fatia 7)**
+
+- Tabela de níveis: XP acumulado = 25·(n−1)² + 75·(n−1) (nível 2 = 100, 5 = 700, 10 = 2.700, 30 = 23.200), em `data/levels.json`.
+- XP por baú aberto: 5. Ouro solto: 25% dos baús comuns dão 15–40 de ouro em vez de carta (registrado em `docs/balance.md`).
+- Perfil: inventário é a lista de cartas possuídas; o loadout (3 slots + até 5 cartas) aponta para cartas do inventário. Ao entrar na missão as cartas do loadout saem do inventário; voltam as mantidas (até 5) e o equipamento final.
+- Queda: perde-se 10% do ouro não depositado (inclui o ouro achado na partida); o depositado na guilda fica a salvo.
+- Ranqueada: +20 por vitória, +5 por sair vivo, −10 por cair, mínimo 0; temporada = mês; faixa de fila ±2 níveis.
+- Loja: estoque diário determinístico (seed = data) com 6 comuns + 3 incomuns; compra = 3× venda; cartas no loadout não podem ser vendidas.
+- Monetização futura: só skins (decidido); nenhum slot pago.
+- Perfis offline (JSON no dispositivo) e online (servidor) são separados na v1, sem sincronização.
+- Arte: placeholders continuam; `SpriteCatalog` troca por PNGs em `Resources/Art` quando existirem. Som básico gerado em código.
+
 ## IA
 
 A IA roda no servidor (ou localmente no modo solo) sobre a mesma API de ações que um jogador humano usa; ela nunca vê a mão oculta dos outros nem células em névoa.

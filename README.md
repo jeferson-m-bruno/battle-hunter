@@ -14,7 +14,7 @@ Jogo de tabuleiro tático competitivo para celular (Unity) com servidor autorita
 | `core.tests/` | xUnit: regras, determinismo por seed, simulação |
 | `server/` | BattleHunter.Server — ASP.NET + WebSocket: salas, matchmaking, reconexão, PostgreSQL opcional |
 | `server.tests/` | Integração: 4 clientes WebSocket numa partida, reconexão, mão oculta |
-| `client/` | Projeto Unity 6 (modo offline contra 3 IAs; cenas e UI montadas em código) |
+| `client/` | Projeto Unity 6: guilda (perfil, missões, loja, loadout, ranking), partida offline contra 3 IAs e online; cenas e UI em código |
 | `data/` | Cartas, monstros, missões e tabelas em JSON |
 | `tools/` | `sync-data.sh`, `sync-core.sh`, `simulate.sh`, `gen-cards-doc.py` |
 

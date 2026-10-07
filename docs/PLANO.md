@@ -389,42 +389,42 @@ O hub entre partidas e tudo que faz o caçador persistir: níveis, loja, tipos d
 
 **Progressão (core + data/levels.json)**
 
-- [ ] Tabela de níveis 1 a 30 em `levels.json`
-- [ ] Ganhos automáticos por nível: +3 PV, +1 ATQ, +1 DEF a cada 2, +1 VEL a cada 3, +1 SOR a cada 2
-- [ ] 1 ponto livre por nível distribuído pelo jogador
-- [ ] XP de monstros, baús e missões somado ao fim da partida
-- [ ] PV restaurado entre missões; até 5 cartas levadas para a próxima
-- [ ] Ao cair: perde 10% do ouro não depositado
+- [x] Tabela de níveis 1 a 30 em `levels.json`
+- [x] Ganhos automáticos por nível: +3 PV, +1 ATQ, +1 DEF a cada 2, +1 VEL a cada 3, +1 SOR a cada 2
+- [x] 1 ponto livre por nível distribuído pelo jogador
+- [x] XP de monstros, baús e missões somado ao fim da partida
+- [x] PV restaurado entre missões; até 5 cartas levadas para a próxima
+- [x] Ao cair: perde 10% do ouro não depositado
 
 **Missões (data/missions.json)**
 
-- [ ] Caça fácil: 12×12, 30 rodadas, sem chefe, 100 ouro + 50 XP, sem requisito
-- [ ] Caça normal: 14×14, 30 rodadas, chefe, 250 ouro + 120 XP, nível 5
-- [ ] Caça difícil: 16×16, 25 rodadas, chefe com PV ×1.5, 500 ouro + 250 XP + carta rara, nível 12
-- [ ] Ranqueada: 14×14, 30 rodadas, chefe, pontos de rank + 200 ouro, nível 8
-- [ ] Sistema de pontos de rank e temporada simples
+- [x] Caça fácil: 12×12, 30 rodadas, sem chefe, 100 ouro + 50 XP, sem requisito
+- [x] Caça normal: 14×14, 30 rodadas, chefe, 250 ouro + 120 XP, nível 5
+- [x] Caça difícil: 16×16, 25 rodadas, chefe com PV ×1.5, 500 ouro + 250 XP + carta rara, nível 12
+- [x] Ranqueada: 14×14, 30 rodadas, chefe, pontos de rank + 200 ouro, nível 8
+- [x] Sistema de pontos de rank e temporada simples
 
 **Economia e loja**
 
-- [ ] Ouro de missões, venda de cartas e ouro solto em baús
-- [ ] Cartas além das 5 mantidas viram ouro pelo valor de venda
-- [ ] Loja da guilda com estoque rotativo diário de comuns e incomuns
-- [ ] Preço de compra = 3× valor de venda
-- [ ] Depósito de ouro na guilda
+- [x] Ouro de missões, venda de cartas e ouro solto em baús
+- [x] Cartas além das 5 mantidas viram ouro pelo valor de venda
+- [x] Loja da guilda com estoque rotativo diário de comuns e incomuns
+- [x] Preço de compra = 3× valor de venda
+- [x] Depósito de ouro na guilda
 
 **Telas (Scenes/Guilda)**
 
-- [ ] Criação do caçador: cor, rosto e nome
-- [ ] Guilda: escolher missão, equipar slots, vender cartas, ver ranking
-- [ ] Tela de subida de nível com distribuição do ponto livre
-- [ ] Ranking global e por temporada
+- [x] Criação do caçador: cor, rosto e nome
+- [x] Guilda: escolher missão, equipar slots, vender cartas, ver ranking
+- [x] Tela de subida de nível com distribuição do ponto livre
+- [x] Ranking global e por temporada
 
 **Arte final**
 
-- [ ] Escolher pacote de sprites isométricos (Kenney, itch.io ou artista)
+- [ ] Escolher pacote de sprites isométricos (Kenney, itch.io ou artista) — `SpriteCatalog` pronto: basta colocar os PNG em `client/Assets/_Project/Art/Resources/Art/` com os nomes do README
 - [ ] Substituir placeholders: tiles, caçadores, monstros, chefe, cartas, HUD
 - [ ] Ícones e arte de loja
-- [ ] Som básico: dado, ataque, baú, vitória
+- [x] Som básico: dado, ataque, baú, vitória
 
 **Publicação**
 
@@ -434,10 +434,10 @@ O hub entre partidas e tudo que faz o caçador persistir: níveis, loja, tipos d
 
 **Testes**
 
-- [ ] Subir de nível aplica os ganhos corretos da tabela
-- [ ] Missão com requisito de nível é bloqueada abaixo dele
-- [ ] Venda e compra respeitam o fator 3×
-- [ ] Simulação de 1.000 partidas por tipo de missão dentro das metas de balanceamento
+- [x] Subir de nível aplica os ganhos corretos da tabela
+- [x] Missão com requisito de nível é bloqueada abaixo dele
+- [x] Venda e compra respeitam o fator 3×
+- [x] Simulação de 1.000 partidas por tipo de missão dentro das metas de balanceamento
 
 **Gate da fatia 7**
 
@@ -447,7 +447,7 @@ O hub entre partidas e tudo que faz o caçador persistir: níveis, loja, tipos d
 
 Decisões que o GDD deixa abertas e que travam uma fatia específica. O Claude Code não deve inventar regras: cada uma precisa de resposta antes da fatia indicada.
 
-- [ ] Monetização: só skins, ou também slots extras de cartas levadas para a missão? Decidir antes do design de rank (fatia 7)
+- [x] Monetização: só skins (campo `Skin` no perfil); nada de slots pagos
 - [x] Versão do Unity: Unity 6 (6000.6.4f1)
 - [x] Formato de rede: JSON (snapshot de ~10–20 KB por atualização; MessagePack só se pesar no 4G)
 - [x] Host do servidor: Fly.io (fly.toml na raiz)

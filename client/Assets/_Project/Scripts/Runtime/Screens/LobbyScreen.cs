@@ -6,70 +6,69 @@ using UnityEngine.UI;
 
 namespace BattleHunter.Client.Screens
 {
-    /// <summary>Lobby online: servidor, nome, missão → fila → sala de espera → Partida. Reconexão é do host.</summary>
+    /// <summary>Lobby online: conecta, abre a guilda online (perfil/loja/loadout/ranking) ou entra na fila; sala de espera; Partida.</summary>
     public sealed class LobbyScreen : MonoBehaviour
     {
         private OnlineGameHost _host;
         private Text _status;
         private InputField _url;
         private InputField _name;
-        private RectTransform _missions;
+        private RectTransform _actions;
         private Button _cancel;
+        private Button _guild;
 
         private void Start()
         {
             var canvas = Ui.Canvas("LobbyCanvas").transform;
-            Ui.PanelRect(canvas, "Bg", Vector2.zero, Vector2.one, new Color(0.08f, 0.07f, 0.10f));
+            Ui.PanelRect(canvas, "Bg", Vector2.zero, Vector2.one, Ui.Background);
             Ui.Label(canvas, "Title", "Online", 72, TextAnchor.MiddleCenter, new Vector2(0f, 0.86f), new Vector2(1f, 0.96f), color: Ui.Accent);
 
             Ui.Label(canvas, "UrlLabel", "Servidor", 26, TextAnchor.MiddleLeft, new Vector2(0.1f, 0.79f), new Vector2(0.9f, 0.83f));
-            _url = Field(canvas, "Url", GameSession.ServerUrl, 0.72f);
+            _url = Ui.Field(canvas, "Url", GameSession.ServerUrl, new Vector2(0.1f, 0.72f), new Vector2(0.9f, 0.785f), maxLength: 120);
             Ui.Label(canvas, "NameLabel", "Nome do caçador", 26, TextAnchor.MiddleLeft, new Vector2(0.1f, 0.65f), new Vector2(0.9f, 0.69f));
-            _name = Field(canvas, "Name", GameSession.HunterName, 0.58f);
+            _name = Ui.Field(canvas, "Name", GameSession.HunterName, new Vector2(0.1f, 0.58f), new Vector2(0.9f, 0.645f));
 
-            _missions = Ui.PanelRect(canvas, "Missions", new Vector2(0.1f, 0.26f), new Vector2(0.9f, 0.54f), Color.clear);
-            Mission("Caça (fácil)", "easy", 0.76f);
-            Mission("Caça (normal)", "normal", 0.52f);
-            Mission("Caça (difícil)", "hard", 0.28f);
-            Mission("Ranqueada", "ranked", 0.04f);
+            _actions = Ui.PanelRect(canvas, "Actions", new Vector2(0.1f, 0.26f), new Vector2(0.9f, 0.54f), Color.clear);
+            Ui.Button(_actions, "Connect", "Conectar", new Vector2(0f, 0.76f), new Vector2(1f, 0.96f), Connect, fontSize: 30, color: new Color(0.2f, 0.4f, 0.55f));
+            _guild = Ui.Button(_actions, "Guild", "Guilda online (missões, loja, loadout)", new Vector2(0f, 0.52f), new Vector2(1f, 0.72f), () =>
+            {
+                if (_host == null || _host.Guild?.Profile == null)
+                {
+                    Show("Conecte primeiro.");
+                    return;
+                }
 
-            _status = Ui.Label(canvas, "Status", "Escolha uma missão para entrar na fila.", 26, TextAnchor.MiddleCenter, new Vector2(0.05f, 0.17f), new Vector2(0.95f, 0.25f), color: Ui.Accent);
+                GameSession.ProfileService = _host.Guild;
+                SceneManager.LoadScene("Guilda");
+            }, fontSize: 28);
+            Ui.Button(_actions, "Quick", "Partida rápida (fácil, sem guilda)", new Vector2(0f, 0.28f), new Vector2(1f, 0.48f), () => Join("easy"), fontSize: 28);
+
+            _status = Ui.Label(canvas, "Status", "Conecte para entrar na guilda ou numa partida.", 26, TextAnchor.MiddleCenter, new Vector2(0.05f, 0.17f), new Vector2(0.95f, 0.25f), color: Ui.Accent);
             _cancel = Ui.Button(canvas, "Cancel", "Sair da fila", new Vector2(0.1f, 0.09f), new Vector2(0.48f, 0.16f), () => _host?.LeaveQueue(), fontSize: 28);
             _cancel.gameObject.SetActive(false);
             Ui.Button(canvas, "Back", "Voltar", new Vector2(0.52f, 0.09f), new Vector2(0.9f, 0.16f), () =>
             {
                 _host?.Shutdown();
+                GameSession.ProfileService = null;
+                GameSession.Mode = GameMode.Offline;
                 SceneManager.LoadScene("Boot");
             }, fontSize: 28);
 
-            // Um host online sobrevivente (partida encerrada) é descartado.
-            var leftover = FindFirstObjectByType<OnlineGameHost>();
-            if (leftover != null)
-                leftover.Shutdown();
+            // Host sobrevivente (vindo da guilda online ou de uma partida encerrada).
+            _host = FindFirstObjectByType<OnlineGameHost>();
+            if (_host != null)
+            {
+                _host.OnStatusChanged += OnStatus;
+                if (_host.State == OnlineGameHost.Status.Finished)
+                    _host.ResetMatch();
+                OnStatus();
+            }
         }
 
-        private InputField Field(Transform canvas, string name, string value, float y)
-        {
-            var rt = Ui.PanelRect(canvas, name, new Vector2(0.1f, y), new Vector2(0.9f, y + 0.065f), new Color(0.2f, 0.19f, 0.25f));
-            var field = rt.gameObject.AddComponent<InputField>();
-            var text = Ui.Label(rt, "Text", value, 28, TextAnchor.MiddleLeft, Vector2.zero, Vector2.one, new Vector2(16, 0), new Vector2(-16, 0));
-            text.raycastTarget = true;
-            text.supportRichText = false;
-            field.textComponent = text;
-            field.text = value;
-            return field;
-        }
-
-        private void Mission(string caption, string id, float y)
-        {
-            Ui.Button(_missions, "Mission " + id, caption, new Vector2(0f, y), new Vector2(1f, y + 0.2f), () => Join(id), fontSize: 30);
-        }
-
-        private void Join(string mission)
+        private void Connect()
         {
             GameSession.ServerUrl = string.IsNullOrWhiteSpace(_url.text) ? GameSession.ServerUrl : _url.text.Trim();
             GameSession.HunterName = string.IsNullOrWhiteSpace(_name.text) ? "Caçador" : _name.text.Trim();
-            GameSession.Mission = mission;
             GameSession.Mode = GameMode.Online;
 
             if (_host == null)
@@ -78,10 +77,32 @@ namespace BattleHunter.Client.Screens
                 _host.OnStatusChanged += OnStatus;
             }
 
-            _host.Connect(GameSession.ServerUrl, mission);
-            _missions.gameObject.SetActive(false);
-            _cancel.gameObject.SetActive(true);
+            _host.Connect(GameSession.ServerUrl);
         }
+
+        private void Join(string mission)
+        {
+            if (_host == null || _host.State is OnlineGameHost.Status.Disconnected or OnlineGameHost.Status.Connecting)
+            {
+                Connect();
+                StartCoroutine(JoinWhenConnected(mission));
+                return;
+            }
+
+            GameSession.Mode = GameMode.Online;
+            _host.JoinQueue(mission);
+        }
+
+        private System.Collections.IEnumerator JoinWhenConnected(string mission)
+        {
+            var deadline = Time.time + 15f;
+            while (Time.time < deadline && (_host == null || _host.State != OnlineGameHost.Status.Connected))
+                yield return null;
+            if (_host != null && _host.State == OnlineGameHost.Status.Connected)
+                _host.JoinQueue(mission);
+        }
+
+        private void Show(string text) => _status.text = text;
 
         private void OnStatus()
         {
@@ -89,16 +110,22 @@ namespace BattleHunter.Client.Screens
                 return;
 
             _status.text = _host.StatusText;
+            var queued = _host.State == OnlineGameHost.Status.Queued;
+            _actions.gameObject.SetActive(!queued);
+            _cancel.gameObject.SetActive(queued);
+
             if (_host.State == OnlineGameHost.Status.InMatch)
             {
                 _host.OnStatusChanged -= OnStatus;
+                GameSession.ProfileService = _host.Guild;
                 SceneManager.LoadScene("Partida");
             }
-            else if (_host.State == OnlineGameHost.Status.Connected)
-            {
-                _missions.gameObject.SetActive(true);
-                _cancel.gameObject.SetActive(false);
-            }
+        }
+
+        private void OnDestroy()
+        {
+            if (_host != null)
+                _host.OnStatusChanged -= OnStatus;
         }
     }
 }

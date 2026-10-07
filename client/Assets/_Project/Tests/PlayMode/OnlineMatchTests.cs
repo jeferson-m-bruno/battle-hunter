@@ -33,9 +33,14 @@ namespace BattleHunter.Client.Tests
             var host = new GameObject("OnlineGameHost").AddComponent<OnlineGameHost>();
             MatchOutcome outcome = null;
             host.OnFinished += o => outcome = o;
-            host.Connect(Url, "easy");
+            host.Connect(Url);
 
             var deadline = Time.realtimeSinceStartup + 90f;
+            while (host.State != OnlineGameHost.Status.Connected && Time.realtimeSinceStartup < deadline)
+                yield return null;
+            Assert.AreEqual(OnlineGameHost.Status.Connected, host.State, $"não conectou: {host.StatusText}");
+
+            host.JoinQueue("easy");
             while (host.View == null && Time.realtimeSinceStartup < deadline)
                 yield return null;
 

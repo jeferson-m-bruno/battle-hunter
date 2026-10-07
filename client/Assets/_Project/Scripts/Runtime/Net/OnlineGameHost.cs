@@ -10,8 +10,8 @@ using UnityEngine;
 namespace BattleHunter.Client.Net
 {
     /// <summary>
-    /// Partida online: o servidor é a verdade. Este host só envia intenções e traduz MatchUpdate em eventos +
-    /// snapshot para a apresentação. Sobrevive à troca de cena (Lobby → Partida) e reconecta sozinho ao cair.
+    /// Conexão online: guilda (perfil, loja, ranking) e partida. O servidor é a verdade: este host só envia intenções
+    /// e traduz MatchUpdate em eventos + snapshot. Sobrevive à troca de cena e reconecta sozinho ao cair.
     /// </summary>
     public sealed class OnlineGameHost : MonoBehaviour, IGameHost
     {
@@ -30,43 +30,64 @@ namespace BattleHunter.Client.Net
         public string RoomId { get; private set; }
         public string PlayerId { get; private set; }
         public int Waiting { get; private set; }
+        public OnlineProfileService Guild { get; private set; }
 
         public event Action<GameEvent> OnEvent;
         public event Action OnStateChanged;
         public event Action<MatchOutcome> OnFinished;
         public event Action OnStatusChanged;
+        public event Action<ServerMessage> OnGuildMessage;
 
         private WebSocketClient _socket;
         private string _url;
-        private string _mission;
         private int _lastTurnKey = -1;
         private bool _wantReconnect;
 
         public static string DeviceId => SystemInfo.deviceUniqueIdentifier + "-" + Application.productName;
 
-        public void Connect(string url, string mission)
+        /// <summary>Conecta e autentica; a fila é pedida à parte (JoinQueue).</summary>
+        public void Connect(string url)
         {
             Content = ContentLoader.Load();
+            Guild ??= new OnlineProfileService(this);
             _url = url;
-            _mission = mission;
             _wantReconnect = true;
             DontDestroyOnLoad(gameObject);
-            StartCoroutine(ConnectRoutine(queueAfter: true));
+            StartCoroutine(ConnectRoutine());
+        }
+
+        public void JoinQueue(string mission)
+        {
+            GameSession.Mission = mission;
+            View = null;
+            RoomId = null;
+            Send(new QueueJoin(mission));
         }
 
         public void LeaveQueue()
         {
-            _socket?.Send(new QueueLeave());
+            Send(new QueueLeave());
             SetStatus(Status.Connected, "Fora da fila.");
         }
+
+        public void Send(ClientMessage message) => _socket?.Send(message);
 
         public bool Submit(GameAction action)
         {
             if (!IsHumanTurn || _socket == null || !_socket.IsOpen)
                 return false;
 
-            _socket.Send(new PlayerAction(action));
+            Send(new PlayerAction(action));
             return true;
+        }
+
+        /// <summary>Volta ao estado de guilda depois de uma partida, mantendo a conexão.</summary>
+        public void ResetMatch()
+        {
+            View = null;
+            RoomId = null;
+            _wantReconnect = true;
+            SetStatus(_socket != null && _socket.IsOpen ? Status.Connected : Status.Disconnected, "");
         }
 
         public void Shutdown()
@@ -76,7 +97,7 @@ namespace BattleHunter.Client.Net
             Destroy(gameObject);
         }
 
-        private IEnumerator ConnectRoutine(bool queueAfter)
+        private IEnumerator ConnectRoutine()
         {
             SetStatus(Status.Connecting, $"Conectando a {_url}…");
             _socket?.Dispose();
@@ -91,15 +112,13 @@ namespace BattleHunter.Client.Net
                 if (_wantReconnect && State != Status.Finished)
                 {
                     yield return new WaitForSeconds(ReconnectSeconds);
-                    StartCoroutine(ConnectRoutine(queueAfter));
+                    StartCoroutine(ConnectRoutine());
                 }
                 yield break;
             }
 
-            _socket.Send(new Auth(DeviceId, GameSession.HunterName));
+            Send(new Auth(DeviceId, GameSession.HunterName));
             SetStatus(Status.Connected, "Conectado. Autenticando…");
-            if (queueAfter)
-                _socket.Send(new QueueJoin(_mission));
         }
 
         private void Update()
@@ -121,6 +140,7 @@ namespace BattleHunter.Client.Net
                 case Welcome w:
                     PlayerId = w.PlayerId;
                     SetStatus(View == null ? Status.Connected : Status.InMatch, $"Olá, {w.Name} (nível {w.Level}).");
+                    Send(new ProfileRequest());
                     break;
                 case Queued q:
                     Waiting = q.Waiting;
@@ -151,10 +171,17 @@ namespace BattleHunter.Client.Net
                     ApplySnapshot(go.Snapshot);
                     OnStateChanged?.Invoke();
                     SetStatus(Status.Finished, "Partida encerrada.");
-                    var reward = GameSession.RewardFor(_mission);
+                    var reward = GameSession.RewardFor(GameSession.Mission);
                     GameSession.LastOutcome = View.ToOutcome(Content, reward.Gold, reward.Xp);
-                    _wantReconnect = false;
+                    GameSession.LastReward = null;
                     OnFinished?.Invoke(GameSession.LastOutcome);
+                    break;
+                case MatchRewarded rewarded:
+                    GameSession.LastReward = rewarded.Summary;
+                    OnGuildMessage?.Invoke(message);
+                    break;
+                case ProfileState or ShopState or Ranking:
+                    OnGuildMessage?.Invoke(message);
                     break;
                 case Rejected r:
                     OnEvent?.Invoke(new ActionRejected(new Pass(HumanId), r.Reason));
@@ -162,7 +189,7 @@ namespace BattleHunter.Client.Net
                 case Error err:
                     if (err.Message == "desconectado")
                     {
-                        if (_wantReconnect && State != Status.Finished)
+                        if (_wantReconnect)
                         {
                             SetStatus(Status.Disconnected, "Conexão perdida. Reconectando…");
                             StartCoroutine(ReconnectLater());
@@ -170,7 +197,11 @@ namespace BattleHunter.Client.Net
                     }
                     else
                     {
-                        OnEvent?.Invoke(new ActionRejected(new Pass(HumanId), err.Message));
+                        OnGuildMessage?.Invoke(message);
+                        if (View != null)
+                            OnEvent?.Invoke(new ActionRejected(new Pass(HumanId), err.Message));
+                        else
+                            SetStatus(State, err.Message);
                     }
                     break;
             }
@@ -180,7 +211,7 @@ namespace BattleHunter.Client.Net
         {
             yield return new WaitForSeconds(ReconnectSeconds);
             if (_wantReconnect)
-                StartCoroutine(ConnectRoutine(queueAfter: View == null));
+                StartCoroutine(ConnectRoutine());
         }
 
         private void ApplySnapshot(PlayerSnapshot snapshot)

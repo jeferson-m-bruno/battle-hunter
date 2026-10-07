@@ -52,7 +52,8 @@ namespace BattleHunter.Client.Presentation
                         Cell.MonsterSpawn => Palette.Spawn,
                         _ => Palette.Floor,
                     };
-                    _tiles[p] = MakeSprite($"tile {x},{y}", ProceduralSprites.Diamond(color, cell.ToString()), p, 0);
+                    var tileKey = cell switch { Cell.Wall => "wall", Cell.Exit => "exit", Cell.MonsterSpawn => "spawn", _ => "floor" };
+                    _tiles[p] = MakeSprite($"tile {x},{y}", SpriteCatalog.Tile(tileKey, color), p, 0);
                     _fog[p] = MakeSprite($"fog {x},{y}", ProceduralSprites.Diamond(Color.white, "fog"), p, 1, Palette.Fog);
                     _highlights[p] = MakeSprite($"hl {x},{y}", ProceduralSprites.Diamond(Color.white, "hl"), p, 1, Color.clear);
                 }
@@ -72,8 +73,8 @@ namespace BattleHunter.Client.Presentation
             foreach (var chest in view.Chests)
             {
                 if (!_chests.TryGetValue(chest.Position, out var sr))
-                    _chests[chest.Position] = sr = MakeSprite($"chest {chest.Position}", ProceduralSprites.Shape(Palette.ChestClosed, false, "chest"), chest.Position, 3);
-                sr.sprite = ProceduralSprites.Shape(chest.IsOpened ? Palette.ChestOpened : Palette.ChestClosed, false, chest.IsOpened ? "chest_open" : "chest");
+                    _chests[chest.Position] = sr = MakeSprite($"chest {chest.Position}", SpriteCatalog.Chest(false), chest.Position, 3);
+                sr.sprite = SpriteCatalog.Chest(chest.IsOpened);
             }
 
             foreach (var g in _ground.Values)
@@ -81,7 +82,7 @@ namespace BattleHunter.Client.Presentation
             foreach (var pile in view.GroundCards.GroupBy(g => g.Position))
             {
                 if (!_ground.TryGetValue(pile.Key, out var sr))
-                    _ground[pile.Key] = sr = MakeSprite($"ground {pile.Key}", ProceduralSprites.Disc(Palette.Ground, "ground"), pile.Key, 2);
+                    _ground[pile.Key] = sr = MakeSprite($"ground {pile.Key}", SpriteCatalog.Ground(), pile.Key, 2);
                 sr.gameObject.SetActive(true);
                 sr.transform.localScale = Vector3.one * 0.5f;
             }
@@ -92,10 +93,9 @@ namespace BattleHunter.Client.Presentation
 
                 if (!_hunters.TryGetValue(hunter.Id, out var sr))
                 {
-                    var color = Palette.Hunters[(hunter.Id - 1) % Palette.Hunters.Length];
                     var at = hunter.Position ?? new Position(0, 0);
-                    _hunters[hunter.Id] = sr = MakeSprite($"hunter {hunter.Id}", ProceduralSprites.Disc(color, "h" + hunter.Id), at, 4);
-                    _hunterMarks[hunter.Id] = MakeSprite($"mark {hunter.Id}", ProceduralSprites.Disc(Palette.Marked, "mark"), at, 4);
+                    _hunters[hunter.Id] = sr = MakeSprite($"hunter {hunter.Id}", SpriteCatalog.Hunter((hunter.Id - 1) % Palette.Hunters.Length), at, 4);
+                    _hunterMarks[hunter.Id] = MakeSprite($"mark {hunter.Id}", SpriteCatalog.Mark(), at, 4);
                     _hunterMarks[hunter.Id].transform.localScale = Vector3.one * 1.3f;
                 }
 
@@ -118,7 +118,7 @@ namespace BattleHunter.Client.Presentation
             foreach (var monster in visibleMonsters.Values)
             {
                 if (!_monsters.TryGetValue(monster.Id, out var sr))
-                    _monsters[monster.Id] = sr = MakeSprite($"monster {monster.Id}", ProceduralSprites.Shape(Palette.Monster(monster.TypeId), true, monster.TypeId), monster.Position, 4);
+                    _monsters[monster.Id] = sr = MakeSprite($"monster {monster.Id}", SpriteCatalog.Monster(monster.TypeId), monster.Position, 4);
                 sr.gameObject.SetActive(true);
                 if (!_moving.Contains(sr))
                     Place(sr, monster.Position, 4);

@@ -2,9 +2,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using BattleHunter.Client.Progression;
 using BattleHunter.Core.Ai;
 using BattleHunter.Core.Cards;
 using BattleHunter.Core.Map;
+using BattleHunter.Core.Progression;
 using BattleHunter.Core.Rules;
 using BattleHunter.Core.Serialization;
 using BattleHunter.Core.State;
@@ -17,7 +19,7 @@ namespace BattleHunter.Client.Offline
     /// <summary>
     /// Roda o core localmente: 1 humano + 3 IAs. Nenhuma regra aqui — o host só aplica intenções no Reducer,
     /// publica os eventos para a apresentação e dá o ritmo (atraso da IA, timer de 45 s do turno humano).
-    /// A apresentação recebe o mesmo PlayerSnapshot que o servidor mandaria.
+    /// Com perfil local, o humano entra com nível, pontos, equipamento e cartas da guilda e recebe as recompensas no fim.
     /// </summary>
     public sealed class OfflineGameHost : MonoBehaviour, IGameHost
     {
@@ -29,7 +31,7 @@ namespace BattleHunter.Client.Offline
         public PlayerSnapshot View { get; private set; }
         public bool IsHumanTurn => State != null && State.Phase is not GamePhase.NotStarted and not GamePhase.Finished && State.CurrentHunterId == HumanId && !GameSession.AutoPilot;
         public float TurnTimeLeft { get; private set; } = TurnSeconds;
-        public string Title => $"offline · seed {GameSession.Seed}";
+        public string Title => $"offline · {GameSession.Mission} · seed {GameSession.Seed}";
         public IReadOnlyDictionary<int, AiProfile> Profiles => _profiles;
 
         public event Action<GameEvent> OnEvent;
@@ -46,21 +48,33 @@ namespace BattleHunter.Client.Offline
             Content = ContentLoader.Load();
             _random = new SeededRandom(GameSession.Seed);
 
-            var settings = GameSession.Settings;
+            var mission = Content.Missions.Contains(GameSession.Mission) ? Content.Missions.Get(GameSession.Mission) : Content.Missions.Get("easy");
+            var settings = MatchSettings.For(mission);
+            GameSession.Settings = settings;
             var map = MapGenerator.Generate(settings.Map, _random);
 
             var commons = Content.Cards.Where(c => c.Rarity == Rarity.Common && c.Type != CardType.Treasure).OrderBy(c => c.Id, StringComparer.Ordinal).ToList();
             var treasures = Content.Cards.Where(c => c.Type == CardType.Treasure).OrderBy(c => c.Id, StringComparer.Ordinal).ToList();
             var aiProfiles = new[] { AiProfile.Aggressive, AiProfile.Cautious, AiProfile.Greedy, AiProfile.Balanced };
+            var local = GameSession.ProfileService as LocalProfileService;
 
             var setups = new List<HunterSetup>();
             for (var i = 1; i <= 4; i++)
             {
-                var hand = Enumerable.Range(0, settings.StartingCommonCards).Select(_ => commons[_random.Next(commons.Count)].Id).ToList();
                 var profile = i == HumanId ? AiProfile.Balanced : aiProfiles[_random.Next(aiProfiles.Length)];
                 _profiles[i] = profile;
-                var name = i == HumanId ? GameSession.HunterName : $"IA {profile}";
-                setups.Add(new HunterSetup(i, name, HunterStats.Base, hand));
+
+                if (i == HumanId && local?.Profile != null)
+                {
+                    setups.Add(LoadoutRules.ToHunterSetup(local.Profile, i));
+                }
+                else
+                {
+                    var hand = Enumerable.Range(0, settings.StartingCommonCards).Select(_ => commons[_random.Next(commons.Count)].Id).ToList();
+                    var name = i == HumanId ? GameSession.HunterName : $"IA {profile}";
+                    setups.Add(new HunterSetup(i, name, HunterStats.Base, hand));
+                }
+
                 if (i != HumanId || GameSession.AutoPilot)
                     _ais[i] = new AiPlayer(i, profile);
             }
@@ -143,13 +157,24 @@ namespace BattleHunter.Client.Offline
             OnStateChanged?.Invoke();
 
             if (State.Phase == GamePhase.Finished)
-            {
-                var reward = GameSession.RewardFor(GameSession.Mission);
-                GameSession.LastOutcome = View.ToOutcome(Content, reward.Gold, reward.Xp);
-                OnFinished?.Invoke(GameSession.LastOutcome);
-            }
+                Finish();
 
             return true;
+        }
+
+        private void Finish()
+        {
+            var reward = GameSession.RewardFor(GameSession.Mission);
+            GameSession.LastOutcome = View.ToOutcome(Content, reward.Gold, reward.Xp);
+            GameSession.LastReward = null;
+
+            if (GameSession.ProfileService is LocalProfileService local && local.Profile != null)
+            {
+                var mission = Content.Missions.Contains(GameSession.Mission) ? Content.Missions.Get(GameSession.Mission) : Content.Missions.Get("easy");
+                GameSession.LastReward = local.ApplyMatch(State.Hunter(HumanId), State.WinnerId == HumanId, mission, _random);
+            }
+
+            OnFinished?.Invoke(GameSession.LastOutcome);
         }
 
         private void Publish() => View = PlayerSnapshot.For(State, HumanId, Content);

@@ -36,8 +36,14 @@ namespace BattleHunter.Client.Screens
                 Host = gameObject.AddComponent<OfflineGameHost>();
             }
 
+            var audio = gameObject.AddComponent<ProceduralAudio>();
             Host.OnStateChanged += OnStateChanged;
-            Host.OnEvent += e => _animations.Enqueue(e);
+            Host.OnEvent += e =>
+            {
+                _animations.Enqueue(e);
+                if (GameSession.AiDelay > 0f)
+                    audio.Play(e);
+            };
             Host.OnFinished += _ => StartCoroutine(GoToResult());
             StartCoroutine(AnimationPump());
             if (Host.View != null)
