@@ -23,7 +23,10 @@ public class OnlineMatchTests : IClassFixture<ServerFixture>
             clients.Add(await _server.ClientAsync(Device("quad"), $"J{i}"));
 
         foreach (var c in clients)
+        {
             await c.SendAsync(new QueueJoin("easy"));
+            await c.WaitForAsync<Queued>();
+        }
         await _server.Matchmaking.TickAsync();
 
         var starts = new List<MatchStarted>();
@@ -69,7 +72,9 @@ public class OnlineMatchTests : IClassFixture<ServerFixture>
         await using var a = await _server.ClientAsync(Device("turn-a"), "A");
         await using var b = await _server.ClientAsync(Device("turn-b"), "B");
         await a.SendAsync(new QueueJoin("normal"));
+        await a.WaitForAsync<Queued>();
         await b.SendAsync(new QueueJoin("normal"));
+        await b.WaitForAsync<Queued>();
         await _server.Matchmaking.TickAsync();
         var sa = await a.WaitForAsync<MatchStarted>();
         var sb = await b.WaitForAsync<MatchStarted>();
@@ -95,6 +100,7 @@ public class OnlineMatchTests : IClassFixture<ServerFixture>
         var device = Device("reconnect");
         var first = await _server.ClientAsync(device, "Volto");
         await first.SendAsync(new QueueJoin("easy"));
+        await first.WaitForAsync<Queued>();
         await _server.Matchmaking.TickAsync();
         var started = await first.WaitForAsync<MatchStarted>();
         await first.CloseAsync();
@@ -115,7 +121,9 @@ public class OnlineMatchTests : IClassFixture<ServerFixture>
         await using var a = await _server.ClientAsync(Device("hide-a"), "A");
         await using var b = await _server.ClientAsync(Device("hide-b"), "B");
         await a.SendAsync(new QueueJoin("easy"));
+        await a.WaitForAsync<Queued>();
         await b.SendAsync(new QueueJoin("easy"));
+        await b.WaitForAsync<Queued>();
         await _server.Matchmaking.TickAsync();
         await a.WaitForAsync<MatchStarted>();
         await b.WaitForAsync<MatchStarted>();

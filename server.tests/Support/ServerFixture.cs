@@ -17,7 +17,7 @@ public sealed class ServerFixture : IDisposable
         {
             builder.UseSetting("BattleHunter:QueueFillSeconds", "0");
             builder.UseSetting("BattleHunter:AiDelayMs", "0");
-            builder.UseSetting("BattleHunter:MatchmakingTickMs", "200");
+            builder.UseSetting("BattleHunter:MatchmakingTickMs", "60000"); // os testes chamam TickAsync; o tique de fundo não pode formar salas no meio de um teste
             builder.UseSetting("BattleHunter:TurnSeconds", "45");
             builder.UseSetting("BattleHunter:ReconnectGraceSeconds", "60");
             builder.UseSetting("ConnectionStrings:Postgres", "");

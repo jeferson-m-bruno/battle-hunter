@@ -101,10 +101,12 @@ public sealed class TestClient : IAsyncDisposable
         _cts.Cancel();
         try
         {
-            await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "bye", CancellationToken.None);
+            if (_socket.State is WebSocketState.Open or WebSocketState.CloseReceived)
+                await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "bye", CancellationToken.None);
         }
-        catch (WebSocketException)
+        catch (Exception ex) when (ex is WebSocketException or ObjectDisposedException or InvalidOperationException or OperationCanceledException)
         {
+            // O servidor pode já ter fechado o socket (fim de partida): fechar de novo não é erro.
         }
     }
 
