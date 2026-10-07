@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using BattleHunter.Client.Offline;
 using BattleHunter.Client.UI;
 using BattleHunter.Core.Cards;
 using BattleHunter.Core.State;
@@ -13,7 +12,7 @@ namespace BattleHunter.Client.Presentation
     /// <summary>Painel inferior: mão de cartas (oculta aos outros), equipamento, ações de carta e modal de descarte.</summary>
     public sealed class HandView : MonoBehaviour
     {
-        private OfflineGameHost _host;
+        private IGameHost _host;
         private RectTransform _panel;
         private RectTransform _cards;
         private RectTransform _popup;
@@ -27,7 +26,7 @@ namespace BattleHunter.Client.Presentation
 
         public event Action<string> OnTargetingStarted;
 
-        public void Build(Transform canvas, OfflineGameHost host)
+        public void Build(Transform canvas, IGameHost host)
         {
             _host = host;
             _panel = Ui.PanelRect(canvas, "Hand", new Vector2(0f, 0f), new Vector2(1f, 0.18f));
@@ -50,7 +49,7 @@ namespace BattleHunter.Client.Presentation
             host.OnEvent += e =>
             {
                 if (e is Core.State.Events.ActionRejected r && r.Reason.StartsWith("Mão cheia"))
-                    EnterDiscardMode();
+                    _discardMode = true;
             };
             Refresh();
         }
@@ -63,8 +62,11 @@ namespace BattleHunter.Client.Presentation
 
         private void Refresh()
         {
-            var state = _host.State;
-            var me = state.Hunter(_host.HumanId);
+            var v = _host.View;
+            if (v == null)
+                return;
+
+            var me = v.Self;
             var cards = _host.Content.Cards;
 
             string Slot(string id) => id == null ? "—" : cards.Get(id).Name;
@@ -81,7 +83,7 @@ namespace BattleHunter.Client.Presentation
                 button.GetComponentInChildren<Text>().supportRichText = true;
             }
 
-            if (_selected != null && !me.HasCard(_selected))
+            if (_selected != null && !me.Hand.Contains(_selected))
             {
                 _selected = null;
                 _popup.gameObject.SetActive(false);
@@ -103,6 +105,7 @@ namespace BattleHunter.Client.Presentation
             _popup.gameObject.SetActive(true);
             _popup.Find("Use").gameObject.SetActive(card.IsUsable);
             _popup.Find("Equip").gameObject.SetActive(card.IsEquipment);
+            _popup.Find("Discard").gameObject.SetActive(card.Type != CardType.Treasure);
         }
 
         private void UseSelected()
@@ -124,8 +127,6 @@ namespace BattleHunter.Client.Presentation
             _popup.gameObject.SetActive(false);
             _host.Submit(action);
         }
-
-        private void EnterDiscardMode() => _discardMode = true;
 
         public static bool NeedsTarget(Card card) =>
             card.Type == CardType.SpecialAttack || card.Effect is "bomb" or "throw";

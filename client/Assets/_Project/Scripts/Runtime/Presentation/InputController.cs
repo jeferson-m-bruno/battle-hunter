@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using BattleHunter.Client.Offline;
-using BattleHunter.Core.Ai;
 using BattleHunter.Core.Map;
 using BattleHunter.Core.State;
 using BattleHunter.Core.State.Actions;
@@ -16,13 +14,14 @@ namespace BattleHunter.Client.Presentation
     /// </summary>
     public sealed class InputController : MonoBehaviour
     {
-        private OfflineGameHost _host;
+        private IGameHost _host;
         private BoardView _board;
         private HandView _hand;
         private HudView _hud;
         private readonly Queue<Position> _pendingSteps = new();
+        private int _pendingPa = -1;
 
-        public void Bind(OfflineGameHost host, BoardView board, HandView hand, HudView hud)
+        public void Bind(IGameHost host, BoardView board, HandView hand, HudView hud)
         {
             _host = host;
             _board = board;
@@ -34,14 +33,24 @@ namespace BattleHunter.Client.Presentation
 
         private void Update()
         {
-            if (_host == null || _host.State == null)
+            var v = _host?.View;
+            if (v == null)
                 return;
 
-            if (_pendingSteps.Count > 0 && _host.IsHumanTurn && _host.State.Phase == GamePhase.Acting)
+            if (_pendingSteps.Count > 0)
             {
-                var next = _pendingSteps.Dequeue();
-                if (!_host.Submit(new MoveTo(_host.HumanId, next)))
+                // Um passo por mudança de PA: espera o servidor/host confirmar o anterior.
+                if (!_host.IsHumanTurn || v.Phase != GamePhase.Acting)
+                {
                     _pendingSteps.Clear();
+                }
+                else if (v.ActionPoints != _pendingPa)
+                {
+                    _pendingPa = v.ActionPoints;
+                    var next = _pendingSteps.Dequeue();
+                    if (!_host.Submit(new MoveTo(_host.HumanId, next)))
+                        _pendingSteps.Clear();
+                }
                 return;
             }
 
@@ -54,8 +63,7 @@ namespace BattleHunter.Client.Presentation
             if (!_host.IsHumanTurn)
                 return;
 
-            var state = _host.State;
-            if (state.Phase == GamePhase.AwaitingRoll)
+            if (v.Phase == GamePhase.AwaitingRoll)
             {
                 _host.Submit(new RollDice(_host.HumanId));
                 return;
@@ -63,15 +71,15 @@ namespace BattleHunter.Client.Presentation
 
             var world = Camera.main.ScreenToWorldPoint(screen);
             var cell = Iso.ToCell(new Vector3(world.x, world.y, 0f));
-            if (!state.Map.IsInside(cell))
+            if (!v.Map.IsInside(cell))
                 return;
 
-            Handle(state, cell);
+            Handle(v, cell);
         }
 
-        private void Handle(GameState state, Position cell)
+        private void Handle(Core.Serialization.PlayerSnapshot v, Position cell)
         {
-            var me = state.Hunter(_host.HumanId);
+            var me = v.Self;
 
             if (_hand.TargetingCard != null)
             {
@@ -83,7 +91,7 @@ namespace BattleHunter.Client.Presentation
 
             if (cell == me.Position)
             {
-                var ground = state.GroundCards.FirstOrDefault(g => g.Position == cell);
+                var ground = v.GroundCards.FirstOrDefault(g => g.Position == cell);
                 if (ground != null)
                     _host.Submit(new PickUp(_host.HumanId, ground.CardId));
                 return;
@@ -91,47 +99,48 @@ namespace BattleHunter.Client.Presentation
 
             if (me.Position.IsOrthogonallyAdjacentTo(cell))
             {
-                if (state.ChestAt(cell) is { IsOpened: false })
+                var chest = v.ChestAt(cell);
+                if (chest != null && !chest.IsOpened)
                 {
                     _host.Submit(new OpenChest(_host.HumanId, cell));
                     return;
                 }
 
-                if (state.MonsterAt(cell) != null || state.HunterAt(cell) != null)
+                if (v.MonsterAt(cell) != null || v.HunterAt(cell) != null)
                 {
                     _host.Submit(new Attack(_host.HumanId, cell));
                     return;
                 }
             }
 
-            var path = Pathfinding.AStar(state.Map, me.Position, cell, p => state.Map.IsWalkable(p) && !state.IsOccupied(p));
-            if (path == null || path.Count == 0 || path.Count > state.ActionPoints || !state.Map.IsWalkable(cell) || state.IsOccupied(cell))
+            var path = Pathfinding.AStar(v.Map, me.Position, cell, p => v.Map.IsWalkable(p) && !v.IsOccupied(p));
+            if (path == null || path.Count == 0 || path.Count > v.ActionPoints || !v.Map.IsWalkable(cell) || v.IsOccupied(cell))
             {
                 _hud.Show("Fora do alcance.");
                 return;
             }
 
+            _pendingPa = -1;
             foreach (var step in path)
                 _pendingSteps.Enqueue(step);
         }
 
         private void RefreshHighlights()
         {
-            var state = _host.State;
-            if (state == null || state.Phase != GamePhase.Acting || !_host.IsHumanTurn)
+            var v = _host.View;
+            if (v == null || v.Phase != GamePhase.Acting || !_host.IsHumanTurn)
             {
                 _board.Highlight(Enumerable.Empty<Position>(), Enumerable.Empty<Position>());
                 return;
             }
 
-            var me = state.Hunter(_host.HumanId);
-            var reachable = Pathfinding.Distances(state.Map, me.Position, p => state.Map.IsWalkable(p) && !state.IsOccupied(p))
-                .Where(kv => kv.Value > 0 && kv.Value <= state.ActionPoints)
+            var me = v.Self;
+            var reachable = Pathfinding.Distances(v.Map, me.Position, p => v.Map.IsWalkable(p) && !v.IsOccupied(p))
+                .Where(kv => kv.Value > 0 && kv.Value <= v.ActionPoints)
                 .Select(kv => kv.Key);
 
-            var view = HunterView.For(state, _host.HumanId, _host.Content);
             var targets = Pathfinding.Neighbors(me.Position)
-                .Where(p => state.Map.IsInside(p) && (view.Monsters.Any(m => m.Position == p) || view.Others.Any(o => o.Position == p) || state.ChestAt(p) is { IsOpened: false }));
+                .Where(p => v.Map.IsInside(p) && (v.MonsterAt(p) != null || v.HunterAt(p) != null || (v.ChestAt(p) is { IsOpened: false })));
 
             _board.Highlight(_hand.TargetingCard != null ? Enumerable.Empty<Position>() : reachable, targets);
         }

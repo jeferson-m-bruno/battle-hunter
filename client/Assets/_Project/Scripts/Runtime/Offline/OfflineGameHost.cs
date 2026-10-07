@@ -6,6 +6,7 @@ using BattleHunter.Core.Ai;
 using BattleHunter.Core.Cards;
 using BattleHunter.Core.Map;
 using BattleHunter.Core.Rules;
+using BattleHunter.Core.Serialization;
 using BattleHunter.Core.State;
 using BattleHunter.Core.State.Actions;
 using BattleHunter.Core.State.Events;
@@ -16,17 +17,19 @@ namespace BattleHunter.Client.Offline
     /// <summary>
     /// Roda o core localmente: 1 humano + 3 IAs. Nenhuma regra aqui — o host só aplica intenções no Reducer,
     /// publica os eventos para a apresentação e dá o ritmo (atraso da IA, timer de 45 s do turno humano).
+    /// A apresentação recebe o mesmo PlayerSnapshot que o servidor mandaria.
     /// </summary>
-    public sealed class OfflineGameHost : MonoBehaviour
+    public sealed class OfflineGameHost : MonoBehaviour, IGameHost
     {
         public const float TurnSeconds = 45f;
 
         public GameState State { get; private set; }
         public GameContent Content { get; private set; }
         public int HumanId => GameSession.HumanHunterId;
+        public PlayerSnapshot View { get; private set; }
         public bool IsHumanTurn => State != null && State.Phase is not GamePhase.NotStarted and not GamePhase.Finished && State.CurrentHunterId == HumanId && !GameSession.AutoPilot;
         public float TurnTimeLeft { get; private set; } = TurnSeconds;
-        public string LastRejection { get; private set; }
+        public string Title => $"offline · seed {GameSession.Seed}";
         public IReadOnlyDictionary<int, AiProfile> Profiles => _profiles;
 
         public event Action<GameEvent> OnEvent;
@@ -64,7 +67,7 @@ namespace BattleHunter.Client.Offline
 
             var treasure = treasures[_random.Next(treasures.Count)].Id;
             State = GameSetup.Create(settings.Config, map, setups, treasure, _random, Content);
-            OnStateChanged?.Invoke();
+            Publish();
 
             Apply(new StartGame());
             StartCoroutine(Loop());
@@ -126,7 +129,6 @@ namespace BattleHunter.Client.Offline
             var rejected = result.Events.OfType<ActionRejected>().FirstOrDefault();
             if (rejected != null)
             {
-                LastRejection = rejected.Reason;
                 OnEvent?.Invoke(rejected);
                 return false;
             }
@@ -135,38 +137,21 @@ namespace BattleHunter.Client.Offline
             if (turnChanged || State.Phase == GamePhase.AwaitingRoll)
                 TurnTimeLeft = TurnSeconds;
 
-            foreach (var e in result.Events)
+            Publish();
+            foreach (var e in EventFilter.ForRecipient(result.Events, State, HumanId, Content))
                 OnEvent?.Invoke(e);
             OnStateChanged?.Invoke();
 
             if (State.Phase == GamePhase.Finished)
-                Finish();
+            {
+                var reward = GameSession.RewardFor(GameSession.Mission);
+                GameSession.LastOutcome = View.ToOutcome(Content, reward.Gold, reward.Xp);
+                OnFinished?.Invoke(GameSession.LastOutcome);
+            }
 
             return true;
         }
 
-        private void Finish()
-        {
-            var human = State.Hunter(HumanId);
-            var kept = human.Hand.Take(GameSession.MaxCardsKept).ToList();
-            var sold = human.Hand.Skip(GameSession.MaxCardsKept).Sum(id => Content.Cards.Get(id).Sell);
-            var won = State.WinnerId == HumanId;
-
-            var outcome = new MatchOutcome
-            {
-                Reason = State.EndReason ?? GameEndReason.RoundLimit,
-                WinnerId = State.WinnerId,
-                WinnerName = State.WinnerId != null ? State.Hunter(State.WinnerId.Value).Name : null,
-                Rounds = State.Round,
-                HumanStatus = human.Status,
-                CardsKept = kept,
-                GoldFromCards = sold,
-                MissionGold = won ? 100 : 0,
-                Xp = human.Xp,
-                MissionXp = won ? 50 : 0,
-            };
-            GameSession.LastOutcome = outcome;
-            OnFinished?.Invoke(outcome);
-        }
+        private void Publish() => View = PlayerSnapshot.For(State, HumanId, Content);
     }
 }

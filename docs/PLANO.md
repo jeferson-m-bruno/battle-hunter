@@ -330,54 +330,54 @@ O servidor .NET vira a única fonte da verdade: recebe intenções, roda o mesmo
 
 **Salas (server/Rooms)**
 
-- [ ] `Room` = um GameState + fila de ações processada em ordem
-- [ ] Interface `IRoomStore` com implementação em memória (Redis fica para depois)
-- [ ] Servidor rola os dados e valida cada intenção; cliente nunca decide dano
-- [ ] Timer de 45 s por turno; passa automaticamente ao expirar
-- [ ] Eventos enviados a todos; mão oculta filtrada por destinatário
-- [ ] Vagas vazias e jogadores ausentes assumidos pela IA da fatia 4
+- [x] `Room` = um GameState + fila de ações processada em ordem
+- [x] Interface `IRoomStore` com implementação em memória (Redis fica para depois)
+- [x] Servidor rola os dados e valida cada intenção; cliente nunca decide dano
+- [x] Timer de 45 s por turno; passa automaticamente ao expirar
+- [x] Eventos enviados a todos; mão oculta filtrada por destinatário
+- [x] Vagas vazias e jogadores ausentes assumidos pela IA da fatia 4
 
 **Rede (WebSocket)**
 
-- [ ] Endpoint WebSocket em ASP.NET em `ws://localhost:5000`
-- [ ] Mensagens JSON com os DTOs de `core/Serialization`; avaliar MessagePack se o tamanho pesar
-- [ ] Uma conexão por jogador por sala
-- [ ] Reconexão: GameState inteiro reenviado ao voltar; 60 s de tolerância antes de a IA assumir
-- [ ] Heartbeat e detecção de desconexão
+- [x] Endpoint WebSocket em ASP.NET em `ws://localhost:5000`
+- [x] Mensagens JSON com os DTOs de `core/Serialization`; avaliar MessagePack se o tamanho pesar
+- [x] Uma conexão por jogador por sala
+- [x] Reconexão: GameState inteiro reenviado ao voltar; 60 s de tolerância antes de a IA assumir
+- [x] Heartbeat e detecção de desconexão
 
 **Matchmaking**
 
-- [ ] Fila por tipo de missão
-- [ ] Faixa de nível ±4 para casuais; por rank para ranqueada
-- [ ] Após 30 s sem sala cheia, IA preenche as vagas
+- [x] Fila por tipo de missão
+- [x] Faixa de nível ±4 para casuais; por rank para ranqueada
+- [x] Após 30 s sem sala cheia, IA preenche as vagas
 - [ ] Sala de espera exibindo equipamentos visíveis dos outros
 
 **Autenticação e persistência**
 
-- [ ] Login anônimo por id de dispositivo (Google Play Games e Game Center ficam para depois)
-- [ ] PostgreSQL via Docker Compose para desenvolvimento local
-- [ ] Tabelas: jogador, caçador, inventário de cartas, histórico de partidas, ranking
-- [ ] Migrações versionadas
-- [ ] Salvar resultado da partida: cartas mantidas, ouro, XP
+- [x] Login anônimo por id de dispositivo (Google Play Games e Game Center ficam para depois)
+- [ ] PostgreSQL via Docker Compose para desenvolvimento local (compose e PostgresPlayerStore prontos; validar com o Docker Desktop ligado)
+- [x] Tabelas: jogador, caçador, inventário de cartas, histórico de partidas, ranking
+- [x] Migrações versionadas
+- [x] Salvar resultado da partida: cartas mantidas, ouro, XP
 
 **Cliente (Scripts/Net)**
 
-- [ ] Cliente WebSocket com fila de eventos reaproveitando a apresentação da fatia 5
-- [ ] Tela de Lobby: escolher missão, entrar na fila, sala de espera
-- [ ] Tratamento de queda e reconexão com reconstrução do estado
+- [x] Cliente WebSocket com fila de eventos reaproveitando a apresentação da fatia 5
+- [x] Tela de Lobby: escolher missão, entrar na fila, sala de espera
+- [x] Tratamento de queda e reconexão com reconstrução do estado
 
 **Hospedagem**
 
-- [ ] Dockerfile do servidor
-- [ ] Deploy de uma instância num host (Fly.io ou Railway) com PostgreSQL gerenciado
-- [ ] Log estruturado e métrica básica: salas ativas, partidas por hora
+- [x] Dockerfile do servidor
+- [ ] Deploy de uma instância no Fly.io (fly.toml pronto, região GRU) com PostgreSQL gerenciado
+- [x] Log estruturado e métrica básica: salas ativas, partidas por hora
 
 **Testes**
 
-- [ ] Teste de integração: 4 clientes simulados completam uma partida pelo WebSocket
-- [ ] Intenção fora do turno é rejeitada pelo servidor
-- [ ] Reconexão recebe o estado idêntico ao da sala
-- [ ] Cliente nunca recebe a mão oculta de outro jogador
+- [x] Teste de integração: 4 clientes simulados completam uma partida pelo WebSocket
+- [x] Intenção fora do turno é rejeitada pelo servidor
+- [x] Reconexão recebe o estado idêntico ao da sala
+- [x] Cliente nunca recebe a mão oculta de outro jogador
 
 **Gate da fatia 6**
 
@@ -449,8 +449,8 @@ Decisões que o GDD deixa abertas e que travam uma fatia específica. O Claude C
 
 - [ ] Monetização: só skins, ou também slots extras de cartas levadas para a missão? Decidir antes do design de rank (fatia 7)
 - [x] Versão do Unity: Unity 6 (6000.6.4f1)
-- [ ] Formato de rede: JSON ou MessagePack? Medir o tamanho das mensagens na fatia 6 antes de trocar
-- [ ] Host do servidor: Fly.io ou Railway? Decidir antes do deploy da fatia 6
+- [x] Formato de rede: JSON (snapshot de ~10–20 KB por atualização; MessagePack só se pesar no 4G)
+- [x] Host do servidor: Fly.io (fly.toml na raiz)
 - [ ] Fonte da arte: pacote pronto ou artista? Decidir antes da fatia 7
 
 | Risco | Sinal | Mitigação |

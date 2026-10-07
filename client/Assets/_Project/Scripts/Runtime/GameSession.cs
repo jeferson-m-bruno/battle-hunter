@@ -5,6 +5,12 @@ using UnityEngine;
 
 namespace BattleHunter.Client
 {
+    public enum GameMode
+    {
+        Offline,
+        Online,
+    }
+
     /// <summary>Resumo da partida para a tela de resultado.</summary>
     public sealed class MatchOutcome
     {
@@ -26,10 +32,13 @@ namespace BattleHunter.Client
         public const int HumanHunterId = 1;
         public const int MaxCardsKept = 5;
 
+        public static GameMode Mode = GameMode.Offline;
         public static MatchSettings Settings = MatchSettings.Easy;
+        public static string Mission = "easy";
         public static int Seed = System.Environment.TickCount & 0x7fffffff;
         public static string HunterName = "Caçador";
         public static Color HunterColor = new Color(0.95f, 0.75f, 0.2f);
+        public static string ServerUrl = "ws://localhost:5000/ws";
 
         /// <summary>Humano controlado pela IA (testes e demonstração).</summary>
         public static bool AutoPilot;
@@ -40,5 +49,14 @@ namespace BattleHunter.Client
         public static MatchOutcome LastOutcome;
 
         public static void NewSeed() => Seed = (Seed * 1103515245 + 12345) & 0x7fffffff;
+
+        /// <summary>Recompensa de vitória por missão (GDD); data/missions.json assume na fatia 7.</summary>
+        public static (int Gold, int Xp) RewardFor(string mission) => mission switch
+        {
+            "normal" => (250, 120),
+            "hard" => (500, 250),
+            "ranked" => (200, 0),
+            _ => (100, 50),
+        };
     }
 }

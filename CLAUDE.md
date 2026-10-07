@@ -16,7 +16,9 @@ não cobre, pergunte antes de inventar.
 
 ## Comandos
 - dotnet test core.tests          # roda antes de qualquer commit
-- dotnet run --project server     # servidor local em ws://localhost:5000
+- dotnet run --project server     # servidor local em ws://localhost:5000/ws (/health, /metrics)
+- dotnet test server.tests        # 4 clientes WebSocket, reconexão, mão oculta
+- docker compose up --build       # servidor + PostgreSQL (precisa do Docker Desktop)
 - ./tools/simulate.sh 1000        # 1000 partidas IA×IA, imprime estatísticas
 - ./tools/sync-data.sh            # copia data/ para o cliente Unity (Assets/_Project/Data/Resources)
 - ./tools/sync-core.sh            # compila o core e copia a DLL para client/Assets/Plugins/BattleHunter

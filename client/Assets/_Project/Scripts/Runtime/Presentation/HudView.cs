@@ -1,9 +1,6 @@
 using System.Collections;
 using System.Linq;
-using BattleHunter.Client.Offline;
 using BattleHunter.Client.UI;
-using BattleHunter.Core.Ai;
-using BattleHunter.Core.Rules;
 using BattleHunter.Core.State;
 using BattleHunter.Core.State.Actions;
 using BattleHunter.Core.State.Events;
@@ -15,7 +12,7 @@ namespace BattleHunter.Client.Presentation
     /// <summary>HUD do topo: PV, PA, rodada, ordem de turno, timer, dado animado, mensagem; botões Passar/Sair.</summary>
     public sealed class HudView : MonoBehaviour
     {
-        private OfflineGameHost _host;
+        private IGameHost _host;
         private Text _status;
         private Text _order;
         private Text _dice;
@@ -26,7 +23,7 @@ namespace BattleHunter.Client.Presentation
         private Coroutine _diceAnim;
         private float _messageUntil;
 
-        public void Build(Transform canvas, OfflineGameHost host)
+        public void Build(Transform canvas, IGameHost host)
         {
             _host = host;
             var top = Ui.PanelRect(canvas, "Hud", new Vector2(0f, 0.86f), new Vector2(1f, 1f));
@@ -47,7 +44,7 @@ namespace BattleHunter.Client.Presentation
 
         private void Update()
         {
-            if (_host == null || _host.State == null)
+            if (_host == null || _host.View == null)
                 return;
 
             _timer.text = _host.IsHumanTurn ? $"{Mathf.CeilToInt(_host.TurnTimeLeft)} s" : "";
@@ -63,34 +60,38 @@ namespace BattleHunter.Client.Presentation
 
         private void Refresh()
         {
-            var state = _host.State;
-            var me = state.Hunter(_host.HumanId);
-            var stats = StatRules.Effective(me, _host.Content);
-            var marked = state.IsMarked(_host.HumanId) ? "  ★ tesouro" : "";
-            var statuses = me.Statuses.Count > 0 ? "  " + string.Join(" ", me.Statuses.Select(s => s.Kind == StatusKind.Poisoned ? "☠" : "⛓")) : "";
-            _status.text = $"{me.Name}  PV {me.Hp}/{stats.MaxHp}  ATQ {stats.Attack}  DEF {stats.Defense}  SOR {stats.Luck}{marked}{statuses}\nRodada {state.Round}/{state.Config.MaxRounds}   PA {state.ActionPoints}";
+            var v = _host.View;
+            if (v == null)
+                return;
 
-            if (state.TurnOrder.Count > 0)
+            var me = v.Self;
+            var stats = v.EffectiveStats;
+            var marked = v.IsMarked ? "  ★ tesouro" : "";
+            var statuses = me.Statuses.Count > 0 ? "  " + string.Join(" ", me.Statuses.Select(s => s.Kind == StatusKind.Poisoned ? "☠" : "⛓")) : "";
+            _status.text = $"{me.Name}  PV {me.Hp}/{stats.MaxHp}  ATQ {stats.Attack}  DEF {stats.Defense}  SOR {stats.Luck}{marked}{statuses}\nRodada {v.Round}/{v.MaxRounds}   PA {v.ActionPoints}   {_host.Title}";
+
+            if (v.TurnOrder.Count > 0)
             {
-                _order.text = "Ordem: " + string.Join("  ", state.TurnOrder.Select(id =>
+                _order.text = "Ordem: " + string.Join("  ", v.TurnOrder.Select(id =>
                 {
-                    var h = state.Hunter(id);
-                    var tag = h.Status == HunterStatus.Fallen ? "✕" : h.Status == HunterStatus.Exited ? "→" : state.IsMarked(id) ? "★" : "";
+                    var h = v.Hunter(id);
+                    var tag = h.Status == HunterStatus.Fallen ? "✕" : h.Status == HunterStatus.Exited ? "→" : h.IsMarked ? "★" : "";
                     var name = id == _host.HumanId ? "Você" : h.Name.Replace("IA ", "");
-                    return state.Phase != GamePhase.Finished && id == state.CurrentHunterId ? $"[{name}{tag}]" : $"{name}{tag}";
+                    return !v.IsFinished() && id == v.CurrentHunterId ? $"[{name}{tag}]" : $"{name}{tag}";
                 }));
             }
 
             var human = _host.IsHumanTurn;
-            _pass.gameObject.SetActive(human && state.Phase == GamePhase.Acting);
-            _exit.gameObject.SetActive(human && state.Phase == GamePhase.Acting && state.Map[me.Position] == Cell.Exit && state.ActionPoints >= 1);
+            _pass.gameObject.SetActive(human && v.Phase == GamePhase.Acting);
+            _exit.gameObject.SetActive(human && v.Phase == GamePhase.Acting && v.Map[me.Position] == Cell.Exit && v.ActionPoints >= 1);
 
-            if (state.Phase == GamePhase.AwaitingRoll && _diceAnim == null)
+            if (v.Phase == GamePhase.AwaitingRoll && _diceAnim == null)
                 _dice.text = human ? "toque\nno dado" : "…";
         }
 
         private void OnEvent(GameEvent e)
         {
+            var v = _host.View;
             switch (e)
             {
                 case DiceRolled d:
@@ -102,7 +103,7 @@ namespace BattleHunter.Client.Presentation
                     Show(r.Reason);
                     break;
                 case HunterMarked m:
-                    Show(m.HunterId == _host.HumanId ? "Você pegou o tesouro! Corra para a saída." : $"{_host.State.Hunter(m.HunterId).Name} pegou o tesouro!");
+                    Show(m.HunterId == _host.HumanId ? "Você pegou o tesouro! Corra para a saída." : $"{v?.NameOf(m.HunterId)} pegou o tesouro!");
                     break;
                 case BossAppeared:
                     Show("O Dragão apareceu na sala da saída!", 4f);
@@ -113,7 +114,7 @@ namespace BattleHunter.Client.Presentation
                 case GameEnded g:
                     Show(g.Reason switch
                     {
-                        GameEndReason.TreasureExtracted => $"{_host.State.Hunter(g.WinnerId!.Value).Name} venceu a missão!",
+                        GameEndReason.TreasureExtracted => $"{v?.NameOf(g.WinnerId ?? 0)} venceu a missão!",
                         GameEndReason.RoundLimit => "Limite de rodadas: missão falhou.",
                         _ => "Todos os caçadores caíram.",
                     }, 5f);

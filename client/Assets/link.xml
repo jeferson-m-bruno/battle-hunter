@@ -1,0 +1,5 @@
+<linker>
+  <!-- IL2CPP: o protocolo cria records por reflexão (Newtonsoft + PolymorphicConverter); nada do core pode ser removido. -->
+  <assembly fullname="BattleHunter.Core" preserve="all" />
+  <assembly fullname="Newtonsoft.Json" preserve="all" />
+</linker>

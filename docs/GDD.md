@@ -332,6 +332,14 @@ O servidor é a única fonte da verdade em partidas online; o cliente nunca rola
 - Um container .NET por região; começa com uma única instância, salas em memória.
 - Escala horizontal exige mover salas para Redis; deixar a interface IRoomStore pronta desde o início.
 
+**Esclarecimentos de implementação (fatia 6)**
+
+- Protocolo JSON com discriminador `type` (lista fechada de tipos; sem TypeNameHandling). O cliente nunca recebe o `GameState`: recebe um `PlayerSnapshot` por jogador (mão própria, Marcado sempre, demais caçadores/monstros/cartas só em visão, armadilhas próprias) e os eventos filtrados (`CardDrawn` só ao dono, `CardStolen` sem o id da carta para terceiros, `TrapPlaced` só ao dono, movimentos fora da visão omitidos).
+- Uma sala = um `GameState` + lock; o laço de turnos roda no servidor: IA para vagas e para ausentes após 60 s, timer de 45 s rola/passa sozinho. Reconexão = `Auth` com o mesmo `deviceId` → `MatchResumed` com snapshot inteiro.
+- Matchmaking: fila por missão, ±4 níveis (ranqueada ±2), 30 s e a IA completa. Login anônimo por dispositivo; perfil em memória por padrão, PostgreSQL por connection string.
+- O cliente offline passou a consumir o mesmo `PlayerSnapshot` (via `IGameHost`), então HUD, tabuleiro e mão são os mesmos nos dois modos.
+- Hospedagem: Fly.io (GRU) via Dockerfile; `fly.toml` pronto, deploy ainda não feito.
+
 ## Estrutura do repositório
 
 Um monorepo com três projetos C#: o núcleo de regras (biblioteca pura), o servidor e o cliente Unity. O núcleo é referenciado pelos outros dois, então cliente e servidor nunca divergem nas regras.

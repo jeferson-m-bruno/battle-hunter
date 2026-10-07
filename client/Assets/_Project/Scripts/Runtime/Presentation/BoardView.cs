@@ -1,9 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using BattleHunter.Core.Ai;
 using BattleHunter.Core.Cards;
-using BattleHunter.Core.Map;
+using BattleHunter.Core.Serialization;
 using BattleHunter.Core.State;
 using BattleHunter.Core.State.Events;
 using UnityEngine;
@@ -11,15 +10,13 @@ using UnityEngine;
 namespace BattleHunter.Client.Presentation
 {
     /// <summary>
-    /// Desenha o tabuleiro isométrico a partir do GameState e anima os eventos. Só lê o estado; nunca decide regra.
+    /// Desenha o tabuleiro isométrico a partir do PlayerSnapshot e anima os eventos. Só lê; nunca decide regra.
     /// Camadas: 0 chão, 1 névoa/realce, 2 cartas no chão, 3 baús, 4 criaturas, 5 textos flutuantes.
     /// </summary>
     public sealed class BoardView : MonoBehaviour
     {
         private const float MoveSeconds = 0.15f;
 
-        private GameContent _content;
-        private int _viewerId;
         private readonly Dictionary<Position, SpriteRenderer> _tiles = new();
         private readonly Dictionary<Position, SpriteRenderer> _fog = new();
         private readonly Dictionary<Position, SpriteRenderer> _highlights = new();
@@ -28,13 +25,12 @@ namespace BattleHunter.Client.Presentation
         private readonly Dictionary<int, SpriteRenderer> _hunters = new();
         private readonly Dictionary<int, SpriteRenderer> _hunterMarks = new();
         private readonly Dictionary<int, SpriteRenderer> _monsters = new();
+        private readonly HashSet<SpriteRenderer> _moving = new();
         private Transform _root;
         private Font _font;
 
-        public void Build(GameState state, GameContent content, int viewerId)
+        public void Build(PlayerSnapshot view)
         {
-            _content = content;
-            _viewerId = viewerId;
             _font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
             if (_root != null)
@@ -43,7 +39,7 @@ namespace BattleHunter.Client.Presentation
             _root.SetParent(transform, false);
             _tiles.Clear(); _fog.Clear(); _highlights.Clear(); _chests.Clear(); _ground.Clear(); _hunters.Clear(); _hunterMarks.Clear(); _monsters.Clear();
 
-            var map = state.Map;
+            var map = view.Map;
             for (var y = 0; y < map.Height; y++)
                 for (var x = 0; x < map.Width; x++)
                 {
@@ -61,20 +57,19 @@ namespace BattleHunter.Client.Presentation
                     _highlights[p] = MakeSprite($"hl {x},{y}", ProceduralSprites.Diamond(Color.white, "hl"), p, 1, Color.clear);
                 }
 
-            Refresh(state);
+            Refresh(view);
             FitCamera(map);
         }
 
-        /// <summary>Sincroniza sprites com o estado (posições, baús, névoa, cartas no chão).</summary>
-        public void Refresh(GameState state)
+        /// <summary>Sincroniza sprites com o snapshot (posições, baús, névoa, cartas no chão).</summary>
+        public void Refresh(PlayerSnapshot view)
         {
-            var view = HunterView.For(state, _viewerId, _content);
             var visible = new HashSet<Position>(view.VisibleCells);
 
-            foreach (var (p, fog) in _fog)
-                fog.color = visible.Contains(p) ? Color.clear : Palette.Fog;
+            foreach (var kv in _fog)
+                kv.Value.color = visible.Contains(kv.Key) ? Color.clear : Palette.Fog;
 
-            foreach (var chest in state.Chests)
+            foreach (var chest in view.Chests)
             {
                 if (!_chests.TryGetValue(chest.Position, out var sr))
                     _chests[chest.Position] = sr = MakeSprite($"chest {chest.Position}", ProceduralSprites.Shape(Palette.ChestClosed, false, "chest"), chest.Position, 3);
@@ -91,26 +86,25 @@ namespace BattleHunter.Client.Presentation
                 sr.transform.localScale = Vector3.one * 0.5f;
             }
 
-            foreach (var hunter in state.Hunters)
+            foreach (var hunter in view.Hunters)
             {
-                var other = view.Others.FirstOrDefault(o => o.Id == hunter.Id);
-                var position = hunter.Id == _viewerId ? hunter.Position : other?.Position;
-                var shown = hunter.IsActive && position != null;
+                var shown = hunter.Status == HunterStatus.Active && hunter.Position != null;
 
                 if (!_hunters.TryGetValue(hunter.Id, out var sr))
                 {
                     var color = Palette.Hunters[(hunter.Id - 1) % Palette.Hunters.Length];
-                    _hunters[hunter.Id] = sr = MakeSprite($"hunter {hunter.Id}", ProceduralSprites.Disc(color, "h" + hunter.Id), hunter.Position, 4);
-                    _hunterMarks[hunter.Id] = MakeSprite($"mark {hunter.Id}", ProceduralSprites.Disc(Palette.Marked, "mark"), hunter.Position, 4);
+                    var at = hunter.Position ?? new Position(0, 0);
+                    _hunters[hunter.Id] = sr = MakeSprite($"hunter {hunter.Id}", ProceduralSprites.Disc(color, "h" + hunter.Id), at, 4);
+                    _hunterMarks[hunter.Id] = MakeSprite($"mark {hunter.Id}", ProceduralSprites.Disc(Palette.Marked, "mark"), at, 4);
                     _hunterMarks[hunter.Id].transform.localScale = Vector3.one * 1.3f;
                 }
 
                 sr.gameObject.SetActive(shown);
-                _hunterMarks[hunter.Id].gameObject.SetActive(shown && state.IsMarked(hunter.Id));
+                _hunterMarks[hunter.Id].gameObject.SetActive(shown && hunter.IsMarked);
                 if (shown && !_moving.Contains(sr))
                 {
-                    Place(sr, position, 4);
-                    Place(_hunterMarks[hunter.Id], position, 3);
+                    Place(sr, hunter.Position, 4);
+                    Place(_hunterMarks[hunter.Id], hunter.Position, 3);
                 }
             }
 
@@ -143,8 +137,6 @@ namespace BattleHunter.Client.Presentation
                 if (_highlights.TryGetValue(p, out var hl))
                     hl.color = Palette.Target;
         }
-
-        private readonly HashSet<SpriteRenderer> _moving = new();
 
         /// <summary>Anima um evento; devolve quando a animação terminou.</summary>
         public IEnumerator Animate(GameEvent e)
@@ -187,10 +179,10 @@ namespace BattleHunter.Client.Presentation
         }
 
         private Position TargetPosition(Combatant c) => c.Kind == CombatantKind.Monster
-            ? (_monsters.TryGetValue(c.Id, out var m) ? Iso.ToCell(m.transform.position) : null)
+            ? (_monsters.TryGetValue(c.Id, out var m) && m.gameObject.activeSelf ? Iso.ToCell(m.transform.position) : null)
             : HunterPosition(c.Id);
 
-        private Position HunterPosition(int id) => _hunters.TryGetValue(id, out var h) ? Iso.ToCell(h.transform.position) : null;
+        private Position HunterPosition(int id) => _hunters.TryGetValue(id, out var h) && h.gameObject.activeSelf ? Iso.ToCell(h.transform.position) : null;
 
         private IEnumerator Slide(SpriteRenderer sr, Position from, Position to, int layer)
         {

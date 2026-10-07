@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using BattleHunter.Client.Net;
 using BattleHunter.Client.Offline;
 using BattleHunter.Client.Presentation;
 using BattleHunter.Client.UI;
@@ -9,10 +10,10 @@ using UnityEngine.SceneManagement;
 
 namespace BattleHunter.Client.Screens
 {
-    /// <summary>Cena Partida: host offline + tabuleiro + HUD + mão + toque. Eventos são animados em fila, na ordem.</summary>
+    /// <summary>Cena Partida: host (offline ou online) + tabuleiro + HUD + mão + toque. Eventos são animados em fila, na ordem.</summary>
     public sealed class MatchScreen : MonoBehaviour
     {
-        public OfflineGameHost Host { get; private set; }
+        public IGameHost Host { get; private set; }
 
         private BoardView _board;
         private readonly Queue<GameEvent> _animations = new();
@@ -20,25 +21,44 @@ namespace BattleHunter.Client.Screens
 
         private void Start()
         {
-            Host = gameObject.AddComponent<OfflineGameHost>();
+            if (GameSession.Mode == GameMode.Online)
+            {
+                var online = FindFirstObjectByType<OnlineGameHost>();
+                if (online == null)
+                {
+                    SceneManager.LoadScene("Lobby");
+                    return;
+                }
+                Host = online;
+            }
+            else
+            {
+                Host = gameObject.AddComponent<OfflineGameHost>();
+            }
+
             Host.OnStateChanged += OnStateChanged;
             Host.OnEvent += e => _animations.Enqueue(e);
             Host.OnFinished += _ => StartCoroutine(GoToResult());
             StartCoroutine(AnimationPump());
+            if (Host.View != null)
+                OnStateChanged();
         }
 
         private void OnStateChanged()
         {
+            if (Host.View == null)
+                return;
+
             if (_built)
             {
-                _board.Refresh(Host.State);
+                _board.Refresh(Host.View);
                 return;
             }
 
             _built = true;
             var canvas = Ui.Canvas("MatchCanvas").transform;
             _board = new GameObject("BoardView").AddComponent<BoardView>();
-            _board.Build(Host.State, Host.Content, Host.HumanId);
+            _board.Build(Host.View);
 
             var hud = gameObject.AddComponent<HudView>();
             hud.Build(canvas, Host);
@@ -60,7 +80,7 @@ namespace BattleHunter.Client.Screens
 
                 yield return _board.Animate(_animations.Dequeue());
                 if (_animations.Count == 0)
-                    _board.Refresh(Host.State);
+                    _board.Refresh(Host.View);
             }
         }
 
