@@ -4,8 +4,8 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SRC="$ROOT/data"
-DEST="$ROOT/client/Assets/_Project/Data"
+DEST="$ROOT/client/Assets/_Project/Data/Resources"
 
 mkdir -p "$DEST"
 cp "$SRC"/*.json "$DEST"/
-echo "data/ sincronizado para client/Assets/_Project/Data ($(ls "$SRC"/*.json | wc -l) arquivos)"
+echo "data/ sincronizado para client/Assets/_Project/Data/Resources ($(ls "$SRC"/*.json | wc -l) arquivos)"

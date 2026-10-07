@@ -18,15 +18,18 @@ não cobre, pergunte antes de inventar.
 - dotnet test core.tests          # roda antes de qualquer commit
 - dotnet run --project server     # servidor local em ws://localhost:5000
 - ./tools/simulate.sh 1000        # 1000 partidas IA×IA, imprime estatísticas
-- ./tools/sync-data.sh            # copia data/ para o cliente Unity
+- ./tools/sync-data.sh            # copia data/ para o cliente Unity (Assets/_Project/Data/Resources)
+- ./tools/sync-core.sh            # compila o core e copia a DLL para client/Assets/Plugins/BattleHunter
 - Unity: abrir client/, cena Boot, Play. Modo offline não precisa do servidor.
+- Unity em batch: Unity.exe -batchmode -projectPath client -runTests -testPlatform PlayMode
+  (depois de sync-core.sh e sync-data.sh; editor em C:/Program Files/Unity/Hub/Editor/6000.6.4f1)
 
 ## Convenções
 - C# 10, nullable habilitado, PascalCase público, _camelCase privado.
 - Um tipo por arquivo. Namespaces espelham pastas (BattleHunter.Core.Rules).
 - Testes: Given_When_Then no nome; um comportamento por teste.
 - Commits pequenos e em português: "core: roubo de carta após dano PvP".
-- Nunca edite client/Assets/_Project/Data à mão; edite data/ e sincronize.
+- Nunca edite client/Assets/_Project/Data nem client/Assets/Plugins/BattleHunter à mão; edite data/ ou core/ e sincronize.
 
 ## Fluxo de trabalho
 1. Leia a seção relevante do GDD antes de implementar.

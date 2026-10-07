@@ -232,6 +232,15 @@ Cada caçador vê sua sala e as células a 2 passos; o resto fica em névoa. Ba�
 - Derrotá-lo é opcional; dá XP e uma carta rara, mas quem gastar turnos nele arrisca perder a corrida à saída.
 - A IA dos caçadores avalia se vale enfrentar (seção de IA).
 
+**Esclarecimentos de implementação (fatia 5)**
+
+- Unity 6 (6000.6.4f1), projeto 2D com pipeline built-in, retrato. O core entra como DLL (.NET Standard 2.1) via `tools/sync-core.sh`; o Newtonsoft vem do pacote oficial da Unity.
+- Cenas e UI são montadas em código (sem prefabs) e as cenas são geradas por `Battle Hunter → Configurar projeto`, para o repositório ser reproduzível.
+- Placeholders geométricos gerados em código: losangos (chão/parede/baú/saída), discos (caçadores), triângulos (monstros); o chefe é maior. Névoa escurece as células fora da visão.
+- Modo offline: 1 humano + 3 IAs com perfis sorteados; a IA e os monstros agem com 0,4 s entre ações. Timer de 45 s: ao estourar, rola e/ou passa sozinho.
+- Toque: célula alcançável move pelo A* (um passo por quadro, 1 PA cada), baú adjacente abre, criatura adjacente ataca, a própria célula com cartas pega, dado toca para rolar; carta → Usar/Equipar/Descartar, cartas com alvo entram em modo de mira.
+- Tela de resultado calcula ouro das cartas além das 5 mantidas pelo valor de venda; recompensa de missão (100 ouro + 50 XP) só na fácil, até a fatia 7 ler `missions.json`.
+
 ## Missões, guilda e economia
 
 A guilda é o hub entre partidas: escolher missão, equipar, vender cartas e ver o ranking. Tudo é tela de menu, sem mundo aberto.

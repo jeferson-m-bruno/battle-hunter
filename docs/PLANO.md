@@ -279,46 +279,46 @@ A primeira partida jogável na tela: o core roda localmente contra 3 IAs, com pl
 
 **Projeto Unity**
 
-- [ ] Instalar o Unity Hub e o editor (2022 LTS ou 6) com módulos Android e iOS
-- [ ] Criar `client/` como projeto 2D; configurar retrato e paisagem
-- [ ] Referenciar o core compilado (DLL .NET Standard 2.1) em `Assets/Plugins`
-- [ ] Rodar `tools/sync-data.sh` e carregar os JSON de `Assets/_Project/Data`
-- [ ] Criar as cenas Boot, Guilda, Lobby, Partida, Resultado (Guilda e Lobby como stubs)
+- [x] Instalar o Unity Hub e o editor (Unity 6 — 6000.6.4f1); módulo Android pendente de instalação pelo Hub
+- [x] Criar `client/` como projeto 2D; configurar retrato e paisagem
+- [x] Referenciar o core compilado (DLL .NET Standard 2.1) em `Assets/Plugins`
+- [x] Rodar `tools/sync-data.sh` e carregar os JSON de `Assets/_Project/Data`
+- [x] Criar as cenas Boot, Guilda, Lobby, Partida, Resultado (Guilda e Lobby como stubs)
 
 **Offline (Scripts/Offline)**
 
-- [ ] `OfflineGameHost` que instancia o core, 1 caçador humano e 3 IAs com perfis sorteados
-- [ ] Fila de eventos do reducer para a camada de apresentação
-- [ ] Turno da IA e dos monstros executados com pequeno atraso para o jogador acompanhar
+- [x] `OfflineGameHost` que instancia o core, 1 caçador humano e 3 IAs com perfis sorteados
+- [x] Fila de eventos do reducer para a camada de apresentação
+- [x] Turno da IA e dos monstros executados com pequeno atraso para o jogador acompanhar
 
 **Apresentação (Scripts/Presentation)**
 
-- [ ] Grid isométrico 2D com sprites placeholder para chão, parede, baú, saída
-- [ ] Sprites placeholder para caçadores (cor escolhida) e monstros (forma por tipo)
-- [ ] Névoa de guerra: células fora da visão escurecidas
-- [ ] Animação do dado no início do turno
-- [ ] Animação de movimento, ataque e dano com os números do evento
-- [ ] HUD: PV, PA restante, rodada, ordem de turno, marcador do portador do tesouro
-- [ ] Mão de cartas em painel inferior; equipados visíveis no caçador
-- [ ] Timer de turno de 45 s com passagem automática
+- [x] Grid isométrico 2D com sprites placeholder para chão, parede, baú, saída
+- [x] Sprites placeholder para caçadores (cor escolhida) e monstros (forma por tipo)
+- [x] Névoa de guerra: células fora da visão escurecidas
+- [x] Animação do dado no início do turno
+- [x] Animação de movimento, ataque e dano com os números do evento
+- [x] HUD: PV, PA restante, rodada, ordem de turno, marcador do portador do tesouro
+- [x] Mão de cartas em painel inferior; equipados visíveis no caçador
+- [x] Timer de turno de 45 s com passagem automática
 
 **Controle por toque**
 
-- [ ] Tocar numa célula alcançável move (caminho destacado com custo em PA)
-- [ ] Tocar num baú adjacente abre; tocar num alvo adjacente ataca
-- [ ] Tocar numa carta mostra ações: usar, equipar, descartar
-- [ ] Botão Passar e botão Sair quando na célula de saída
-- [ ] Modal de descarte obrigatório na 11ª carta
+- [x] Tocar numa célula alcançável move (caminho destacado com custo em PA)
+- [x] Tocar num baú adjacente abre; tocar num alvo adjacente ataca
+- [x] Tocar numa carta mostra ações: usar, equipar, descartar
+- [x] Botão Passar e botão Sair quando na célula de saída
+- [x] Modal de descarte obrigatório na 11ª carta
 
 **Tela de resultado**
 
-- [ ] Vencedor da missão, cartas mantidas (até 5), ouro e XP ganhos
-- [ ] Botão Jogar de novo com nova seed
+- [x] Vencedor da missão, cartas mantidas (até 5), ouro e XP ganhos
+- [x] Botão Jogar de novo com nova seed
 
 **Verificação**
 
 - [ ] Build Android instalado num celular real
-- [ ] CI continua compilando o core fora do Unity (nenhum `using UnityEngine` em core/)
+- [x] CI continua compilando o core fora do Unity (nenhum `using UnityEngine` em core/)
 
 **Gate da fatia 5**
 
@@ -448,7 +448,7 @@ O hub entre partidas e tudo que faz o caçador persistir: níveis, loja, tipos d
 Decisões que o GDD deixa abertas e que travam uma fatia específica. O Claude Code não deve inventar regras: cada uma precisa de resposta antes da fatia indicada.
 
 - [ ] Monetização: só skins, ou também slots extras de cartas levadas para a missão? Decidir antes do design de rank (fatia 7)
-- [ ] Versão do Unity: 2022 LTS ou 6? Decidir antes da fatia 5
+- [x] Versão do Unity: Unity 6 (6000.6.4f1)
 - [ ] Formato de rede: JSON ou MessagePack? Medir o tamanho das mensagens na fatia 6 antes de trocar
 - [ ] Host do servidor: Fly.io ou Railway? Decidir antes do deploy da fatia 6
 - [ ] Fonte da arte: pacote pronto ou artista? Decidir antes da fatia 7

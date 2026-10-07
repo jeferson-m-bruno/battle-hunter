@@ -20,6 +20,8 @@ client/[Rr]ecordings/
 client/.vsconfig
 client/*.csproj
 client/*.sln
+client/*.slnx
+client/.vs/
 client/.idea/
 client/.vscode/
 client/*.apk
@@ -27,8 +29,10 @@ client/*.aab
 client/*.unitypackage
 client/crashlytics-build.properties
 
-# Gerado por tools/sync-data.sh (fonte é data/)
-client/Assets/_Project/Data/
+# Gerados por tools/sync-data.sh e tools/sync-core.sh (fontes: data/ e core/)
+client/Assets/_Project/Data/Resources/*.json
+client/Assets/Plugins/BattleHunter/*.dll
+client/Assets/Plugins/BattleHunter/*.xml
 
 # IDE / SO
 .idea/
