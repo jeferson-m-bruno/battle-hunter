@@ -1,0 +1,32 @@
+# Desenvolvimento local: PostgreSQL + servidor.  docker compose up --build
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: battlehunter
+      POSTGRES_PASSWORD: battlehunter
+      POSTGRES_DB: battlehunter
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U battlehunter"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      ConnectionStrings__Postgres: "Host=postgres;Username=battlehunter;Password=battlehunter;Database=battlehunter"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:

@@ -31,5 +31,8 @@ jobs:
       - name: Build do servidor
         run: dotnet build server -c Release --nologo
 
+      - name: Testes do servidor (4 clientes WebSocket, reconexão, mão oculta)
+        run: dotnet test server.tests -c Release --nologo
+
       - name: Simulação de fumaça (200 partidas IA×IA)
         run: dotnet run -c Release --project simulator -- 200 || test $? -eq 2

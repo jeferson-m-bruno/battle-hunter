@@ -1,0 +1,23 @@
+# Fly.io — deploy: fly launch --no-deploy (uma vez), fly postgres create, fly secrets set ConnectionStrings__Postgres=..., fly deploy
+app = "battle-hunter-server"
+primary_region = "gru"
+
+[build]
+  dockerfile = "server/Dockerfile"
+
+[env]
+  ASPNETCORE_URLS = "http://0.0.0.0:5000"
+  BH_DATA_DIR = "/app/data"
+
+[http_service]
+  internal_port = 5000
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    method = "GET"
+    path = "/health"
