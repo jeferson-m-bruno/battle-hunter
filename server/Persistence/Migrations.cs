@@ -29,5 +29,10 @@ public static class Migrations
                 finished_at timestamptz not null
             );
             create index matches_player_ids on matches using gin (player_ids)"),
+        ("003_profile_and_rank", @"
+            alter table players add column rank_points integer not null default 0;
+            alter table players add column season text not null default '';
+            alter table players add column profile jsonb not null default '{}'::jsonb;
+            create index players_ranking on players (season, rank_points desc)"),
     };
 }

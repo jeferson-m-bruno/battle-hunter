@@ -1,6 +1,7 @@
 using BattleHunter.Core.Ai;
 using BattleHunter.Core.Cards;
 using BattleHunter.Core.Map;
+using BattleHunter.Core.Progression;
 using BattleHunter.Core.Rules;
 using BattleHunter.Core.Serialization;
 using BattleHunter.Core.State;
@@ -18,6 +19,8 @@ public sealed class Seat
     public string? PlayerId { get; init; }
     public string Name { get; init; } = "";
     public AiProfile Profile { get; init; }
+    /// <summary>Perfil do jogador na entrada: nível, stats, equipamento e cartas levadas.</summary>
+    public Profile? PlayerProfile { get; init; }
     public Connection? Connection { get; set; }
     public DateTimeOffset? DisconnectedAt { get; set; }
     public AiPlayer? Ai { get; set; }
@@ -28,6 +31,7 @@ public sealed class Seat
 /// <summary>
 /// Uma sala = um GameState + fila de ações. O servidor é a única fonte da verdade: rola dados, valida pelo Reducer
 /// e manda a cada jogador só o que ele pode ver. Timer de turno, IA para vagas e ausentes, reconexão com snapshot.
+/// No fim, aplica as recompensas da missão no perfil de cada jogador.
 /// </summary>
 public sealed class Room
 {
@@ -54,13 +58,18 @@ public sealed class Room
         _seats = seats.ToDictionary(s => s.HunterId);
         _random = new SeededRandom(seed);
 
-        var settings = Missions.SettingsFor(mission);
+        MissionType = content.Missions.Get(mission);
+        var settings = MatchSettings.For(MissionType);
         var map = MapGenerator.Generate(settings.Map, _random);
         var commons = content.Cards.Where(c => c.Rarity == Rarity.Common && c.Type != CardType.Treasure).OrderBy(c => c.Id, StringComparer.Ordinal).ToList();
         var treasures = content.Cards.Where(c => c.Type == CardType.Treasure).OrderBy(c => c.Id, StringComparer.Ordinal).ToList();
 
         var setups = seats.OrderBy(s => s.HunterId).Select(s =>
         {
+            if (s.PlayerProfile != null)
+                return LoadoutRules.ToHunterSetup(s.PlayerProfile, s.HunterId);
+
+            // IA: 2 cartas comuns, como na simulação.
             var hand = Enumerable.Range(0, settings.StartingCommonCards).Select(_ => commons[_random.Next(commons.Count)].Id).ToList();
             return new HunterSetup(s.HunterId, s.Name, HunterStats.Base, hand);
         }).ToList();
@@ -72,6 +81,7 @@ public sealed class Room
 
     public string Id { get; }
     public string Mission { get; }
+    public MissionType MissionType { get; }
     public int Seed { get; }
     public GameState State { get; private set; }
     public bool IsFinished => State.Phase == GamePhase.Finished;
@@ -270,6 +280,29 @@ public sealed class Room
             await seat.Connection!.SendAsync(new GameOver(State.EndReason ?? GameEndReason.RoundLimit, State.WinnerId, SnapshotFor(seat.HunterId)));
 
         var winnerSeat = State.WinnerId != null ? _seats[State.WinnerId.Value] : null;
+        var season = RankRules.SeasonOf(DateTimeOffset.UtcNow);
+
+        // Recompensas (GDD: fim de missão) no perfil de cada jogador humano.
+        foreach (var seat in _seats.Values.Where(s => s.PlayerId != null))
+        {
+            try
+            {
+                var profile = await _players.GetAsync(seat.PlayerId!, CancellationToken.None);
+                if (profile == null)
+                    continue;
+
+                var final = State.Hunter(seat.HunterId);
+                var (updated, summary) = MatchRewards.Apply(profile, final, State.WinnerId == seat.HunterId, MissionType, _content, _random, season);
+                await _players.SaveAsync(updated, CancellationToken.None);
+                if (seat.Connection != null)
+                    await seat.Connection.SendAsync(new MatchRewarded(summary, updated));
+            }
+            catch (Exception ex)
+            {
+                _log.LogError(ex, "Falha ao recompensar {Player} na sala {Room}", seat.PlayerId, Id);
+            }
+        }
+
         try
         {
             await _players.RecordMatchAsync(new MatchRecord(

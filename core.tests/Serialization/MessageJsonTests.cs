@@ -86,6 +86,25 @@ public class MessageJsonTests
     }
 
     [Fact]
+    public void Given_ProfileMessages_When_RoundTripped_Then_Equal()
+    {
+        var profile = Core.Progression.Profile.New("p1", "Jef", 2, 1, "2026-10") with
+        {
+            Level = 3, Xp = 300, Points = new Core.Progression.StatPoints(Atk: 1), UnspentPoints = 1, Gold = 50,
+            Inventory = new[] { "axe", "potion" }, Loadout = new Core.Progression.Loadout(new Equipment(Weapon: "axe"), new[] { "potion" }),
+        };
+
+        var state = (ProfileState)MessageJson.Deserialize<ServerMessage>(MessageJson.Serialize<ServerMessage>(new ProfileState(profile, 150)));
+        Assert.Equal(profile.Id, state.Profile.Id);
+        Assert.Equal(profile.Inventory, state.Profile.Inventory);
+        Assert.Equal(profile.Loadout.Equipment, state.Profile.Loadout.Equipment);
+        Assert.Equal(profile.Points, state.Profile.Points);
+
+        var set = (SetLoadout)MessageJson.Deserialize<ClientMessage>(MessageJson.Serialize<ClientMessage>(new SetLoadout(profile.Loadout)));
+        Assert.Equal(new[] { "potion" }, set.Loadout.Hand);
+    }
+
+    [Fact]
     public void Given_GeneratedGame_When_SnapshotSerialized_Then_RoundTripsAndHidesOtherHands()
     {
         var random = new SeededRandom(9);

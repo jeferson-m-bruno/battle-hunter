@@ -1,19 +1,14 @@
 using BattleHunter.Core.Ai;
+using BattleHunter.Core.Cards;
 
 namespace BattleHunter.Server;
 
-/// <summary>Tipos de missão aceitos na fila. Os valores completos (recompensas, requisitos) vêm de data/missions.json na fatia 7.</summary>
+/// <summary>Tipos de missão aceitos na fila, vindos de data/missions.json.</summary>
 public static class Missions
 {
-    public static readonly IReadOnlyList<string> Ids = new[] { "easy", "normal", "hard", "ranked" };
+    public static IReadOnlyList<string> Ids(GameContent content) => content.Missions.All.Select(m => m.Id).ToList();
 
-    public static bool IsValid(string id) => Ids.Contains(id, StringComparer.Ordinal);
+    public static bool IsValid(GameContent content, string id) => content.Missions.Contains(id);
 
-    public static MatchSettings SettingsFor(string id) => id switch
-    {
-        "normal" => MatchSettings.Normal,
-        "hard" => MatchSettings.Hard,
-        "ranked" => MatchSettings.Normal,
-        _ => MatchSettings.Easy,
-    };
+    public static MatchSettings SettingsFor(GameContent content, string id) => MatchSettings.For(content.Missions.Get(id));
 }

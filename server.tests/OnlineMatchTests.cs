@@ -71,9 +71,9 @@ public class OnlineMatchTests : IClassFixture<ServerFixture>
     {
         await using var a = await _server.ClientAsync(Device("turn-a"), "A");
         await using var b = await _server.ClientAsync(Device("turn-b"), "B");
-        await a.SendAsync(new QueueJoin("normal"));
+        await a.SendAsync(new QueueJoin("easy"));
         await a.WaitForAsync<Queued>();
-        await b.SendAsync(new QueueJoin("normal"));
+        await b.SendAsync(new QueueJoin("easy"));
         await b.WaitForAsync<Queued>();
         await _server.Matchmaking.TickAsync();
         var sa = await a.WaitForAsync<MatchStarted>();

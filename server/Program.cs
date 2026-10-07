@@ -48,8 +48,8 @@ app.MapGet("/metrics", (IRoomStore rooms) =>
         uptimeSeconds = (int)(DateTimeOffset.UtcNow - Metrics.StartedAt).TotalSeconds,
     });
 });
-app.Map("/ws", async (HttpContext http, IPlayerStore players, IRoomStore rooms, MatchmakingService matchmaking, ILoggerFactory logs) =>
-    await WebSocketEndpoint.HandleAsync(http, players, rooms, matchmaking, logs.CreateLogger("ws")));
+app.Map("/ws", async (HttpContext http, IPlayerStore players, IRoomStore rooms, MatchmakingService matchmaking, GameContent content, ILoggerFactory logs) =>
+    await WebSocketEndpoint.HandleAsync(http, players, rooms, matchmaking, content, logs.CreateLogger("ws")));
 
 app.Run();
 

@@ -1,5 +1,6 @@
 using BattleHunter.Core.Ai;
 using BattleHunter.Core.Cards;
+using BattleHunter.Core.Progression;
 using BattleHunter.Core.Serialization;
 using BattleHunter.Server.Net;
 using BattleHunter.Server.Persistence;
@@ -9,7 +10,11 @@ using Microsoft.Extensions.Options;
 namespace BattleHunter.Server.Matchmaking;
 
 /// <summary>Jogador esperando sala.</summary>
-public sealed record QueueEntry(string PlayerId, string Name, int Level, Connection Connection, string Mission, DateTimeOffset JoinedAt);
+public sealed record QueueEntry(Profile Profile, Connection Connection, string Mission, DateTimeOffset JoinedAt)
+{
+    public string PlayerId => Profile.Id;
+    public int Level => Profile.Level;
+}
 
 /// <summary>
 /// Fila por tipo de missão (GDD): 4 jogadores na faixa de nível ±4 formam sala; após 30 s sem sala cheia,
@@ -41,12 +46,12 @@ public sealed class MatchmakingService : BackgroundService
             return _queue.Count(e => e.Mission == mission);
     }
 
-    public async Task JoinAsync(PlayerRecord player, Connection connection, string mission)
+    public async Task JoinAsync(Profile profile, Connection connection, string mission)
     {
         lock (_gate)
         {
-            _queue.RemoveAll(e => e.PlayerId == player.Id);
-            _queue.Add(new QueueEntry(player.Id, player.Name, player.Level, connection, mission, DateTimeOffset.UtcNow));
+            _queue.RemoveAll(e => e.PlayerId == profile.Id);
+            _queue.Add(new QueueEntry(profile, connection, mission, DateTimeOffset.UtcNow));
         }
 
         await connection.SendAsync(new Queued(mission, Waiting(mission), _options.QueueFillSeconds));
@@ -64,7 +69,7 @@ public sealed class MatchmakingService : BackgroundService
         List<List<QueueEntry>> groups = new();
         lock (_gate)
         {
-            foreach (var mission in Missions.Ids)
+            foreach (var mission in Missions.Ids(_content))
             {
                 var waiting = _queue.Where(e => e.Mission == mission && e.Connection.IsOpen).OrderBy(e => e.JoinedAt).ToList();
                 _queue.RemoveAll(e => e.Mission == mission && !e.Connection.IsOpen);
@@ -91,11 +96,11 @@ public sealed class MatchmakingService : BackgroundService
             await CreateRoomAsync(group);
     }
 
-    /// <summary>Até 4 jogadores compatíveis com o mais antigo: ranqueada por rank (nível por enquanto), casual ±LevelRange.</summary>
+    /// <summary>Até 4 jogadores compatíveis com o mais antigo: ranqueada ±2 níveis, casual ±LevelRange.</summary>
     private List<QueueEntry> Compatible(List<QueueEntry> waiting, string mission)
     {
         var anchor = waiting[0];
-        var range = mission == "ranked" ? 2 : _options.LevelRange;
+        var range = _content.Missions.Get(mission).Ranked ? 2 : _options.LevelRange;
         return waiting.Where(e => Math.Abs(e.Level - anchor.Level) <= range).Take(BattleHunter.Core.Map.MapSpec.HunterSpawns).ToList();
     }
 
@@ -111,7 +116,9 @@ public sealed class MatchmakingService : BackgroundService
             if (i < group.Count)
             {
                 var e = group[i];
-                seats.Add(new Seat { HunterId = i + 1, PlayerId = e.PlayerId, Name = e.Name, Profile = AiProfile.Balanced, Connection = e.Connection });
+                // Perfil mais recente: a guilda pode ter mudado o loadout depois de entrar na fila.
+                var profile = await _players.GetAsync(e.PlayerId, CancellationToken.None) ?? e.Profile;
+                seats.Add(new Seat { HunterId = i + 1, PlayerId = e.PlayerId, Name = profile.Name, Profile = AiProfile.Balanced, PlayerProfile = profile, Connection = e.Connection });
             }
             else
             {

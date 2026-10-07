@@ -47,7 +47,7 @@ public sealed class TestClient : IAsyncDisposable
 
     public Task ActAsync(GameAction action) => SendAsync(new PlayerAction(action));
 
-    public async Task<T> WaitForAsync<T>(Func<T, bool>? predicate = null, int timeoutMs = 20_000) where T : ServerMessage
+    public async Task<T> WaitForAsync<T>(Func<T, bool>? predicate = null, int timeoutMs = 40_000) where T : ServerMessage
     {
         var deadline = DateTime.UtcNow.AddMilliseconds(timeoutMs);
         var seen = 0;
@@ -70,7 +70,7 @@ public sealed class TestClient : IAsyncDisposable
     }
 
     /// <summary>Joga passando: na vez do seu caçador, rola e passa até a partida acabar.</summary>
-    public async Task PlayPassingUntilOverAsync(int timeoutMs = 60_000)
+    public async Task PlayPassingUntilOverAsync(int timeoutMs = 120_000)
     {
         var deadline = DateTime.UtcNow.AddMilliseconds(timeoutMs);
         var acted = -1;

@@ -1,11 +1,14 @@
+using BattleHunter.Core.Progression;
+using BattleHunter.Core.Serialization;
 using BattleHunter.Core.State;
 using Npgsql;
+using NpgsqlTypes;
 
 namespace BattleHunter.Server.Persistence;
 
 /// <summary>
-/// PostgreSQL via Npgsql puro (sem ORM): tabelas players e matches. Ativado por ConnectionStrings:Postgres.
-/// O esquema é criado/migrado na inicialização a partir dos arquivos em Persistence/Migrations.
+/// PostgreSQL via Npgsql puro (sem ORM). O perfil inteiro vai em jsonb (mesmo JSON do protocolo);
+/// nível, rank e temporada ficam em colunas para o ranking. Esquema migrado na inicialização.
 /// </summary>
 public sealed class PostgresPlayerStore : IPlayerStore
 {
@@ -37,28 +40,61 @@ public sealed class PostgresPlayerStore : IPlayerStore
         }
     }
 
-    public async Task<PlayerRecord> GetOrCreateAsync(string deviceId, string name, CancellationToken ct)
+    public async Task<Profile> GetOrCreateAsync(string deviceId, string name, CancellationToken ct)
+    {
+        await using var conn = await _db.OpenConnectionAsync(ct);
+        await using var find = new NpgsqlCommand("select profile from players where device_id = @device", conn);
+        find.Parameters.AddWithValue("device", deviceId);
+        var existing = await find.ExecuteScalarAsync(ct) as string;
+        if (existing != null)
+        {
+            var profile = MessageJson.Deserialize<Profile>(existing);
+            if (!string.IsNullOrWhiteSpace(name) && profile.Name != name)
+            {
+                profile = profile with { Name = name };
+                await SaveAsync(profile, ct);
+            }
+
+            await Exec(conn, "update players set last_seen_at = now() where device_id = '" + deviceId.Replace("'", "''") + "'", ct);
+            return profile;
+        }
+
+        var created = Profile.New(Guid.NewGuid().ToString("N"), name);
+        await using var insert = new NpgsqlCommand(@"
+            insert into players (id, device_id, name, level, xp, gold, rank_points, season, profile)
+            values (@id, @device, @name, 1, 0, 0, 0, '', @profile)", conn);
+        insert.Parameters.AddWithValue("id", created.Id);
+        insert.Parameters.AddWithValue("device", deviceId);
+        insert.Parameters.AddWithValue("name", created.Name);
+        insert.Parameters.Add(new NpgsqlParameter("profile", NpgsqlDbType.Jsonb) { Value = MessageJson.Serialize(created) });
+        await insert.ExecuteNonQueryAsync(ct);
+        return created;
+    }
+
+    public async Task<Profile?> GetAsync(string playerId, CancellationToken ct)
+    {
+        await using var conn = await _db.OpenConnectionAsync(ct);
+        await using var cmd = new NpgsqlCommand("select profile from players where id = @id", conn);
+        cmd.Parameters.AddWithValue("id", playerId);
+        var json = await cmd.ExecuteScalarAsync(ct) as string;
+        return json == null ? null : MessageJson.Deserialize<Profile>(json);
+    }
+
+    public async Task SaveAsync(Profile profile, CancellationToken ct)
     {
         await using var conn = await _db.OpenConnectionAsync(ct);
         await using var cmd = new NpgsqlCommand(@"
-            insert into players (id, device_id, name) values (@id, @device, @name)
-            on conflict (device_id) do update set name = excluded.name, last_seen_at = now()
-            returning id, device_id, name, level, xp, gold", conn);
-        cmd.Parameters.AddWithValue("id", Guid.NewGuid().ToString("N"));
-        cmd.Parameters.AddWithValue("device", deviceId);
-        cmd.Parameters.AddWithValue("name", name);
-        await using var reader = await cmd.ExecuteReaderAsync(ct);
-        await reader.ReadAsync(ct);
-        return Read(reader);
-    }
-
-    public async Task<PlayerRecord?> GetAsync(string playerId, CancellationToken ct)
-    {
-        await using var conn = await _db.OpenConnectionAsync(ct);
-        await using var cmd = new NpgsqlCommand("select id, device_id, name, level, xp, gold from players where id = @id", conn);
-        cmd.Parameters.AddWithValue("id", playerId);
-        await using var reader = await cmd.ExecuteReaderAsync(ct);
-        return await reader.ReadAsync(ct) ? Read(reader) : null;
+            update players set name = @name, level = @level, xp = @xp, gold = @gold, rank_points = @rank, season = @season, profile = @profile
+            where id = @id", conn);
+        cmd.Parameters.AddWithValue("id", profile.Id);
+        cmd.Parameters.AddWithValue("name", profile.Name);
+        cmd.Parameters.AddWithValue("level", profile.Level);
+        cmd.Parameters.AddWithValue("xp", profile.Xp);
+        cmd.Parameters.AddWithValue("gold", profile.TotalGold);
+        cmd.Parameters.AddWithValue("rank", profile.RankPoints);
+        cmd.Parameters.AddWithValue("season", profile.Season);
+        cmd.Parameters.Add(new NpgsqlParameter("profile", NpgsqlDbType.Jsonb) { Value = MessageJson.Serialize(profile) });
+        await cmd.ExecuteNonQueryAsync(ct);
     }
 
     public async Task RecordMatchAsync(MatchRecord match, CancellationToken ct)
@@ -101,8 +137,18 @@ public sealed class PostgresPlayerStore : IPlayerStore
         return list;
     }
 
-    private static PlayerRecord Read(NpgsqlDataReader r) =>
-        new(r.GetString(0), r.GetString(1), r.GetString(2), r.GetInt32(3), r.GetInt32(4), r.GetInt32(5));
+    public async Task<IReadOnlyList<Profile>> RankingAsync(string season, int limit, CancellationToken ct)
+    {
+        await using var conn = await _db.OpenConnectionAsync(ct);
+        await using var cmd = new NpgsqlCommand("select profile from players where season = @season and rank_points > 0 order by rank_points desc, name limit @limit", conn);
+        cmd.Parameters.AddWithValue("season", season);
+        cmd.Parameters.AddWithValue("limit", limit);
+        await using var reader = await cmd.ExecuteReaderAsync(ct);
+        var list = new List<Profile>();
+        while (await reader.ReadAsync(ct))
+            list.Add(MessageJson.Deserialize<Profile>(reader.GetString(0)));
+        return list;
+    }
 
     private static async Task Exec(NpgsqlConnection conn, string sql, CancellationToken ct, NpgsqlTransaction? tx = null)
     {
