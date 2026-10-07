@@ -23,3 +23,16 @@ Observações:
 - O Equilibrado vence um pouco mais que os outros em todas as missões: os bônus dos perfis tiram foco do tesouro. Dentro da meta; revisar quando houver jogadores humanos.
 - Nas missões normal e difícil o limite de rodadas encerra 40–50% das partidas: o chefe na sala da saída e o mapa maior seguram a extração. Fica para a fatia 7 (tipos de missão) decidir se o limite sobe.
 - Nenhuma partida abortada por excesso de ações; recusas de ação da IA abaixo de 0,1%.
+
+## 2026-10-07 — fatia 7: ouro solto e XP por baú
+
+Mudança: 25% dos baús comuns dão 15–40 de ouro em vez de carta (`GameConfig.ChestGoldPercent`), 5 XP por baú (`ChestXp`). Antes = linhas "depois" da seção anterior (mesmas seeds).
+
+| Rodada | Agressivo | Cauteloso | Ganancioso | Equilibrado | Tesouro extraído | Todos fora | Limite | Média de rodadas | Caídos/partida | Meta |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| depois · fácil · seeds 1–1000 | 11,3% | 16,0% | 13,1% | 17,1% | 57,5% | 6,6% | 35,9% | 18,5 | 1,14 | ok |
+| depois · fácil · seeds 5001–6000 | 9,9% | 14,5% | 16,0% | 18,7% | 59,1% | 6,3% | 34,6% | 18,3 | 1,12 | ok |
+| depois · normal · seeds 1–1000 | 7,9% | 9,5% | 11,1% | 15,2% | 43,7% | 16,5% | 39,8% | 20,9 | 1,77 | ok |
+| depois · difícil · seeds 1–1000 | 5,7% | 9,5% | 12,0% | 15,0% | 42,2% | 7,1% | 50,7% | 19,3 | 1,47 | ok |
+
+Efeito pequeno: duração média igual (18,3–18,5 na fácil) e perfis ainda abaixo de 20%; dentro da meta. Mais ouro circulando alimenta a loja da guilda.

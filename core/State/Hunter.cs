@@ -15,7 +15,8 @@ public sealed record Hunter(
     Equipment Equipment,
     int Level,
     int Xp,
-    IReadOnlyList<StatusEffect> Statuses)
+    IReadOnlyList<StatusEffect> Statuses,
+    int Gold = 0)
 {
     public static Hunter Create(
         int id,

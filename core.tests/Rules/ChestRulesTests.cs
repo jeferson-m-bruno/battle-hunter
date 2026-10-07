@@ -115,6 +115,63 @@ public class ChestRulesTests
     }
 
     [Fact]
+    public void Given_ChestOpened_When_Resolved_Then_OpenerGainsChestXp()
+    {
+        var state = Game(new FixedRandom(4));
+
+        var result = state.Apply(new OpenChest(1, ChestA), new SeededRandom(1));
+
+        Assert.Equal(5, result.State.Hunter(1).Xp);
+    }
+
+    [Fact]
+    public void Given_GoldChance_When_RollBelowPercent_Then_GoldInsteadOfCard()
+    {
+        // FixedRandom.Next(max) devolve max-1: 99 para a chance (falha), então forçamos 100% para testar o ouro.
+        var state = NewGameWithChests(MapBuilder.WithChests5x5(), new[] { new Chest(ChestA, false, false) }, Treasure, HunterAt(1, 0, 0), HunterAt(2, 4, 0))
+            with { Config = new GameConfig(ChestGoldPercent: 100, ChestGoldMin: 15, ChestGoldMax: 40) };
+        state = state.StartAndRoll(new FixedRandom(4));
+
+        var result = state.Apply(new OpenChest(1, ChestA), new FixedRandom());
+
+        var found = Assert.Single(result.Events.OfType<GoldFound>());
+        Assert.InRange(found.Amount, 15, 40);
+        Assert.Equal(found.Amount, result.State.Hunter(1).Gold);
+        Assert.Empty(result.Events.OfType<CardDrawn>());
+        Assert.Empty(result.State.Hunter(1).Hand);
+        Assert.True(result.State.ChestAt(ChestA)!.IsOpened);
+    }
+
+    [Fact]
+    public void Given_TargetChest_When_GoldChanceIsFull_Then_StillGivesTreasure()
+    {
+        var state = NewGameWithChests(MapBuilder.WithChests5x5(), new[] { new Chest(ChestA, false, true) }, Treasure, HunterAt(1, 0, 0), HunterAt(2, 4, 0))
+            with { Config = new GameConfig(ChestGoldPercent: 100, BossRound: 0) };
+        state = state.StartAndRoll(new FixedRandom(4));
+
+        var result = state.Apply(new OpenChest(1, ChestA), new FixedRandom());
+
+        Assert.Empty(result.Events.OfType<GoldFound>());
+        Assert.Contains(Treasure, result.State.Hunter(1).Hand);
+    }
+
+    [Fact]
+    public void Given_ManySeeds_When_ChestsOpened_Then_AboutAQuarterGiveGold()
+    {
+        var gold = 0;
+        for (var seed = 1; seed <= 400; seed++)
+        {
+            var state = NewGameWithChests(MapBuilder.WithChests5x5(), new[] { new Chest(ChestA, false, false) }, Treasure, HunterAt(1, 0, 0), HunterAt(2, 4, 0))
+                with { Config = new GameConfig() };
+            state = state.StartAndRoll(new FixedRandom(4));
+            if (state.Apply(new OpenChest(1, ChestA), new SeededRandom(seed)).Events.OfType<GoldFound>().Any())
+                gold++;
+        }
+
+        Assert.InRange(gold / 400.0, 0.17, 0.33);
+    }
+
+    [Fact]
     public void Given_LuckyHunter_When_Opened_Then_LootUsesEffectiveLuck()
     {
         // Mesmo seed: com SOR efetiva maior, a raridade sorteada muda em algum dos casos.

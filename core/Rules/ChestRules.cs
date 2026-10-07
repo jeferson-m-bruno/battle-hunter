@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using BattleHunter.Core.Cards;
 using BattleHunter.Core.State;
@@ -45,6 +46,14 @@ internal static class ChestRules
             var mimicId = next.NextMonsterId - 1;
             next = CombatRules.ResolveAttack(next, Combatant.MonsterRef(mimicId), Combatant.HunterRef(hunter.Id), random, content, events);
         }
+        else if (!chest.HoldsTargetTreasure && state.Config.ChestGoldPercent > 0 && random.Next(100) < state.Config.ChestGoldPercent)
+        {
+            // Ouro solto (GDD): em vez de carta.
+            var amount = state.Config.ChestGoldMin + random.Next(Math.Max(1, state.Config.ChestGoldMax - state.Config.ChestGoldMin + 1));
+            var richer = next.Hunter(hunter.Id);
+            next = next.WithHunter(richer with { Gold = richer.Gold + amount });
+            events.Add(new GoldFound(hunter.Id, amount, richer.Gold + amount));
+        }
         else
         {
             var card = chest.HoldsTargetTreasure
@@ -52,6 +61,12 @@ internal static class ChestRules
                 : LootRoller.Roll(content.LootTable(GameContent.ChestLootTableId), content.Cards, StatRules.Effective(hunter, content).Luck, random);
 
             next = GiveCard(next, hunter.Id, card.Id, random, content, events);
+        }
+
+        if (!chest.IsMimic && state.Config.ChestXp > 0)
+        {
+            var opener = next.Hunter(hunter.Id);
+            next = next.WithHunter(opener with { Xp = opener.Xp + state.Config.ChestXp });
         }
 
         if (next.Phase == GamePhase.Finished)

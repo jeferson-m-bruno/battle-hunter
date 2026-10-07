@@ -25,6 +25,10 @@ public sealed record MatchSettings(
 
     /// <summary>Caça (difícil): 16×16, 25 rodadas, chefe com PV ×1.5.</summary>
     public static MatchSettings Hard => new(new MapSpec(Size: 16), new GameConfig(MaxRounds: 25, BossRound: 15, BossHpPercent: 150));
+
+    /// <summary>Parâmetros de uma missão de data/missions.json.</summary>
+    public static MatchSettings For(MissionType mission) =>
+        new(new MapSpec(Size: mission.GridSize), new GameConfig(MaxRounds: mission.MaxRounds, BossRound: mission.Boss ? 15 : 0, BossHpPercent: mission.BossHpPercent));
 }
 
 /// <summary>Resultado de uma partida IA×IA.</summary>

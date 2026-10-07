@@ -1,1 +1,6 @@
-[]
+[
+  {"id": "easy", "name": "Caça (fácil)", "gridSize": 12, "maxRounds": 30, "boss": false, "bossHpPercent": 100, "rewardGold": 100, "rewardXp": 50, "rewardRareCard": false, "ranked": false, "requiredLevel": 1},
+  {"id": "normal", "name": "Caça (normal)", "gridSize": 14, "maxRounds": 30, "boss": true, "bossHpPercent": 100, "rewardGold": 250, "rewardXp": 120, "rewardRareCard": false, "ranked": false, "requiredLevel": 5},
+  {"id": "hard", "name": "Caça (difícil)", "gridSize": 16, "maxRounds": 25, "boss": true, "bossHpPercent": 150, "rewardGold": 500, "rewardXp": 250, "rewardRareCard": true, "ranked": false, "requiredLevel": 12},
+  {"id": "ranked", "name": "Ranqueada", "gridSize": 14, "maxRounds": 30, "boss": true, "bossHpPercent": 100, "rewardGold": 200, "rewardXp": 0, "rewardRareCard": false, "ranked": true, "requiredLevel": 8}
+]

@@ -22,8 +22,9 @@ public static class GameFixture
     public static GameState NewGame(GameConfig config, GridMap map, params Hunter[] hunters) =>
         GameState.New(config, map, hunters);
 
+    /// <summary>Sem ouro solto nos baús, para os testes de regra serem determinísticos; o ouro tem testes próprios.</summary>
     public static GameState NewGameWithChests(GridMap map, IReadOnlyList<Chest> chests, string? treasureId, params Hunter[] hunters) =>
-        GameState.New(new GameConfig(), map, hunters, chests, treasureId);
+        GameState.New(new GameConfig(ChestGoldPercent: 0), map, hunters, chests, treasureId);
 
     /// <summary>Coloca monstros numa partida já montada (antes ou depois de iniciar).</summary>
     public static GameState WithMonsters(this GameState state, params Monster[] monsters) =>
