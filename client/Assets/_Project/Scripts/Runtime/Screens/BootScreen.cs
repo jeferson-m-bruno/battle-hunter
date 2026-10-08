@@ -13,7 +13,7 @@ namespace BattleHunter.Client.Screens
             GameSession.Mode = GameMode.Offline;
             GameSession.ProfileService = null;
             var canvas = Ui.Canvas("BootCanvas").transform;
-            Ui.PanelRect(canvas, "Bg", Vector2.zero, Vector2.one, Ui.Background);
+            Ui.PanelRect(canvas, "Bg", Vector2.zero, Vector2.one, Ui.Background, framed: false);
             Ui.Label(canvas, "Title", "BATTLE HUNTER", 96, TextAnchor.MiddleCenter, new Vector2(0f, 0.72f), new Vector2(1f, 0.9f), color: Ui.Accent);
             Ui.Label(canvas, "Sub", "Caça ao tesouro, 4 caçadores, um dungeon.", 32, TextAnchor.MiddleCenter, new Vector2(0f, 0.64f), new Vector2(1f, 0.72f));
 

@@ -16,7 +16,7 @@ namespace BattleHunter.Client.Screens
             var o = GameSession.LastOutcome;
             var r = GameSession.LastReward;
             var canvas = Ui.Canvas("ResultCanvas").transform;
-            Ui.PanelRect(canvas, "Bg", Vector2.zero, Vector2.one, Ui.Background);
+            Ui.PanelRect(canvas, "Bg", Vector2.zero, Vector2.one, Ui.Background, framed: false);
 
             var online = FindFirstObjectByType<OnlineGameHost>();
             var isOnline = GameSession.Mode == GameMode.Online && online != null;

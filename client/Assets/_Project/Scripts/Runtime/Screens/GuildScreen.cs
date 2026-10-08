@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using BattleHunter.Client.Net;
+using BattleHunter.Client.Presentation;
 using BattleHunter.Client.Progression;
 using BattleHunter.Client.UI;
 using BattleHunter.Core.Cards;
@@ -37,7 +38,7 @@ namespace BattleHunter.Client.Screens
         {
             _content = ContentLoader.Load();
             _canvas = Ui.Canvas("GuildCanvas").transform;
-            Ui.PanelRect(_canvas, "Bg", Vector2.zero, Vector2.one, Ui.Background);
+            Ui.PanelRect(_canvas, "Bg", Vector2.zero, Vector2.one, Ui.Background, framed: false);
 
             _service = GameSession.ProfileService ?? (GameSession.ProfileService = new LocalProfileService(_content));
             _service.OnChanged += Redraw;
@@ -80,7 +81,7 @@ namespace BattleHunter.Client.Screens
             for (var i = 0; i < 4; i++)
             {
                 var index = i;
-                var b = Ui.Button(_canvas, $"Color{i}", "", new Vector2(0.1f + i * 0.2f, 0.5f), new Vector2(0.26f + i * 0.2f, 0.57f), () => { color = index; Mark(colorButtons, index); }, color: Presentation.Palette.Hunters[i]);
+                var b = Ui.Button(_canvas, $"Color{i}", "", new Vector2(0.1f + i * 0.2f, 0.5f), new Vector2(0.26f + i * 0.2f, 0.57f), () => { color = index; Mark(colorButtons, index); }, color: Palette.Hunters[i], icon: SpriteCatalog.Hunter(i));
                 colorButtons.Add(b);
             }
 
@@ -103,7 +104,7 @@ namespace BattleHunter.Client.Screens
                 GameSession.HunterName = string.IsNullOrWhiteSpace(name.text) ? "Caçador" : name.text.Trim();
                 _service.SetAppearance(GameSession.HunterName, color, face);
                 Ui.Clear(_canvas);
-                Ui.PanelRect(_canvas, "Bg", Vector2.zero, Vector2.one, Ui.Background);
+                Ui.PanelRect(_canvas, "Bg", Vector2.zero, Vector2.one, Ui.Background, framed: false);
                 BuildGuild();
                 _service.RequestShop();
             });
@@ -209,7 +210,8 @@ namespace BattleHunter.Client.Screens
                 var text = $"<b>{m.Name}</b>  ({m.GridSize}×{m.GridSize}, {m.MaxRounds} rodadas{(m.Boss ? ", chefe" : "")})\n" +
                            $"{m.RewardGold} ouro + {m.RewardXp} XP{(m.RewardRareCard ? " + carta rara" : "")}{(m.Ranked ? " + pontos de rank" : "")}" +
                            (locked ? $"\n<color=#ff8080>exige nível {m.RequiredLevel}</color>" : "");
-                Ui.ListItem(list, "Mission " + m.Id, text, null, locked ? null : "Partir", () => Depart(m), locked ? new Color(0.2f, 0.19f, 0.22f) : (Color?)null);
+                Ui.ListItem(list, "Mission " + m.Id, text, null, locked ? null : "Partir", () => Depart(m), locked ? new Color(0.2f, 0.19f, 0.22f) : (Color?)null,
+                    icon: m.Boss ? SpriteCatalog.Monster("dragon") : SpriteCatalog.Icon(m.RewardRareCard ? "icon_treasure" : "icon_gold"));
             }
         }
 
@@ -275,7 +277,7 @@ namespace BattleHunter.Client.Screens
                     else
                         Show("A mão leva no máximo 5 cartas.");
                     Redraw();
-                });
+                }, icon: SpriteCatalog.CardIcon(card.Type));
             }
 
             if (available.Count == 0)
@@ -294,7 +296,7 @@ namespace BattleHunter.Client.Screens
             foreach (var id in _service.ShopStock)
             {
                 var card = cards.Get(id);
-                Ui.ListItem(stock, "Buy " + id, $"<b>{card.Name}</b>  <size=20>{Describe(card)}</size>", null, $"{Shop.PriceOf(card)} ouro", () => _service.Buy(id), fontSize: 24);
+                Ui.ListItem(stock, "Buy " + id, $"<b>{card.Name}</b>  <size=20>{Describe(card)}</size>", null, $"{Shop.PriceOf(card)} ouro", () => _service.Buy(id), fontSize: 24, icon: SpriteCatalog.CardIcon(card.Type));
             }
 
             Ui.Label(_body, "SellTitle", "Vender do inventário (cartas fora do loadout)", 26, TextAnchor.MiddleLeft, new Vector2(0.03f, 0.45f), new Vector2(0.97f, 0.51f));
@@ -305,7 +307,7 @@ namespace BattleHunter.Client.Screens
             foreach (var group in free.GroupBy(id => id).OrderBy(g => cards.Get(g.Key).Name))
             {
                 var card = cards.Get(group.Key);
-                Ui.ListItem(sell, "Sell " + card.Id, $"<b>{card.Name}</b>{(group.Count() > 1 ? $" ×{group.Count()}" : "")}", null, $"+{card.Sell}", () => _service.Sell(card.Id), fontSize: 24);
+                Ui.ListItem(sell, "Sell " + card.Id, $"<b>{card.Name}</b>{(group.Count() > 1 ? $" ×{group.Count()}" : "")}", null, $"+{card.Sell}", () => _service.Sell(card.Id), fontSize: 24, icon: SpriteCatalog.CardIcon(card.Type));
             }
 
             Ui.Button(_body, "Deposit", $"Depositar tudo ({p.Gold})", new Vector2(0.03f, 0.02f), new Vector2(0.48f, 0.1f), () => { if (p.Gold > 0) _service.Deposit(p.Gold); }, fontSize: 24);

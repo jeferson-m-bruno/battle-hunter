@@ -52,7 +52,13 @@ namespace BattleHunter.Client.Presentation
                         Cell.MonsterSpawn => Palette.Spawn,
                         _ => Palette.Floor,
                     };
-                    var tileKey = cell switch { Cell.Wall => "wall", Cell.Exit => "exit", Cell.MonsterSpawn => "spawn", _ => "floor" };
+                    var tileKey = cell switch
+                    {
+                        Cell.Wall => HidesCellBehind(map, x, y) ? "wall_low" : "wall",
+                        Cell.Exit => "exit",
+                        Cell.MonsterSpawn => "spawn",
+                        _ => "floor",
+                    };
                     _tiles[p] = MakeSprite($"tile {x},{y}", SpriteCatalog.Tile(tileKey, color), p, 0);
                     _fog[p] = MakeSprite($"fog {x},{y}", ProceduralSprites.Diamond(Color.white, "fog"), p, 1, Palette.Fog);
                     _highlights[p] = MakeSprite($"hl {x},{y}", ProceduralSprites.Diamond(Color.white, "hl"), p, 1, Color.clear);
@@ -239,6 +245,18 @@ namespace BattleHunter.Client.Presentation
         {
             sr.transform.position = Iso.ToWorld(at);
             sr.sortingOrder = Iso.SortingOrder(at, layer);
+        }
+
+        /// <summary>
+        /// Um bloco de parede cheio cobre as células "atrás" dele na tela ((x-1,y) e (x,y-1)). Se alguma delas é jogável,
+        /// a parede vira meia altura para não esconder caçadores, baús e cartas. Só apresentação; a regra do mapa não muda.
+        /// </summary>
+        private static bool HidesCellBehind(GridMap map, int x, int y)
+        {
+            return IsWalkable(map, x - 1, y) || IsWalkable(map, x, y - 1);
+
+            static bool IsWalkable(GridMap m, int cx, int cy) =>
+                cx >= 0 && cy >= 0 && cx < m.Width && cy < m.Height && m[new Position(cx, cy)] != Cell.Wall;
         }
 
         private static void FitCamera(GridMap map)

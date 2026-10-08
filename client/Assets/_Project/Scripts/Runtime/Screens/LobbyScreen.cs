@@ -20,7 +20,7 @@ namespace BattleHunter.Client.Screens
         private void Start()
         {
             var canvas = Ui.Canvas("LobbyCanvas").transform;
-            Ui.PanelRect(canvas, "Bg", Vector2.zero, Vector2.one, Ui.Background);
+            Ui.PanelRect(canvas, "Bg", Vector2.zero, Vector2.one, Ui.Background, framed: false);
             Ui.Label(canvas, "Title", "Online", 72, TextAnchor.MiddleCenter, new Vector2(0f, 0.86f), new Vector2(1f, 0.96f), color: Ui.Accent);
 
             Ui.Label(canvas, "UrlLabel", "Servidor", 26, TextAnchor.MiddleLeft, new Vector2(0.1f, 0.79f), new Vector2(0.9f, 0.83f));

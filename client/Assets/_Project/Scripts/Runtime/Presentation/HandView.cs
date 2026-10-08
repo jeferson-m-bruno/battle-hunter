@@ -79,7 +79,8 @@ namespace BattleHunter.Client.Presentation
             {
                 var card = cards.Get(id);
                 var caption = $"{card.Name}\n<size=20>{Describe(card)}</size>";
-                var button = Ui.Button(_cards, "Card " + id, caption, Vector2.zero, Vector2.one, () => Select(id), fontSize: 24, color: ColorOf(card));
+                var button = Ui.Button(_cards, "Card " + id, caption, Vector2.zero, Vector2.one, () => Select(id), fontSize: 24, color: ColorOf(card),
+                    icon: SpriteCatalog.CardIcon(card.Type), iconTop: true, frame: SpriteCatalog.CardFrame());
                 button.GetComponentInChildren<Text>().supportRichText = true;
             }
 

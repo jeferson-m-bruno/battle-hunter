@@ -421,9 +421,9 @@ O hub entre partidas e tudo que faz o caçador persistir: níveis, loja, tipos d
 
 **Arte final**
 
-- [ ] Escolher pacote de sprites isométricos (Kenney, itch.io ou artista) — `SpriteCatalog` pronto: basta colocar os PNG em `client/Assets/_Project/Art/Resources/Art/` com os nomes do README
-- [ ] Substituir placeholders: tiles, caçadores, monstros, chefe, cartas, HUD
-- [ ] Ícones e arte de loja
+- [x] Escolher pacote de sprites isométricos — rota CC0: Isometric Stone Soup (chão/paredes) + Dungeon Crawl Stone Soup 32×32 (criaturas, itens, ícones) + Kenney Fantasy UI Borders (molduras); `tools/import-art.py` gera os PNG e o `CREDITS.md`
+- [x] Substituir placeholders: tiles (parede cheia/meia altura), caçadores, monstros, chefe, cartas (moldura + ícone por tipo), HUD (painéis e botões 9-slice)
+- [x] Ícones e arte de loja (ícone por tipo de carta nas listas de loja, inventário e missões)
 - [x] Som básico: dado, ataque, baú, vitória
 
 **Publicação**
@@ -451,7 +451,7 @@ Decisões que o GDD deixa abertas e que travam uma fatia específica. O Claude C
 - [x] Versão do Unity: Unity 6 (6000.6.4f1)
 - [x] Formato de rede: JSON (snapshot de ~10–20 KB por atualização; MessagePack só se pesar no 4G)
 - [x] Host do servidor: Fly.io (fly.toml na raiz)
-- [ ] Fonte da arte: pacote pronto ou artista? Decidir antes da fatia 7
+- [x] Fonte da arte: pacotes CC0 prontos (2026-10-07); arte própria pode substituir os PNG pelos mesmos nomes
 
 | Risco | Sinal | Mitigação |
 | --- | --- | --- |
