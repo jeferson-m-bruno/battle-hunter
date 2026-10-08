@@ -25,6 +25,9 @@ não cobre, pergunte antes de inventar.
 - Unity: abrir client/, cena Boot, Play. Modo offline não precisa do servidor.
 - Unity em batch: Unity.exe -batchmode -projectPath client -runTests -testPlatform PlayMode
   (depois de sync-core.sh e sync-data.sh; editor em C:/Program Files/Unity/Hub/Editor/6000.6.4f1)
+- Build Windows: Unity.exe -batchmode -quit -projectPath client -executeMethod BattleHunter.Client.Editor.Builds.Windows
+  (saída em client/Builds/Windows/BattleHunter.exe; Android idem com Builds.Android, exige o módulo Android)
+- Arte: python tools/import-art.py <dir com iso/ dcss/ ui/> regenera client/Assets/_Project/Art/Resources/Art (ver README lá)
 
 ## Convenções
 - C# 10, nullable habilitado, PascalCase público, _camelCase privado.
